@@ -1,0 +1,66 @@
+div#dataplus_templateform{
+	margin-left: 20%;
+	width: 70%;
+}
+
+div.dataplus_templatemenu{
+	position: absolute;
+	width: 30%;
+	margin-top: 2em;
+	background:#DBEDFF;
+	background-image: url('../../mod/dataplus/pix/ftblue-corner-tl.png');
+	background-position: top left;
+	background-repeat:no-repeat;
+}
+
+div.dataplus_templatemenu_OU {
+    left; -35%;
+}
+
+div.dataplus_templatemenu_nonOU{
+    left; 5%;
+}
+
+div.dataplus_templatemenu_topright {
+	background-image: url('../../mod/dataplus/pix/ftblue-corner-tr.png');
+	background-position: top right;
+	background-repeat:no-repeat;
+
+}
+
+div.dataplus_templatemenu_bottomright {
+	background-image: url('../../mod/dataplus/pix/ftblue-corner-br.png');
+	background-position: bottom right;
+	background-repeat:no-repeat;
+}
+
+div.dataplus_templatemenu_bottomleft {
+	background-image: url('../../mod/dataplus/pix/ftblue-corner-bl.png');
+	background-position: bottom left;
+	background-repeat:no-repeat;
+	padding: 8px;
+}
+
+div.dataplus_templatemenu_bottomleft ul{
+	list-style-type: none;
+}
+
+div.dataplus_templatemenu_bottomleft a{
+	color: #000000;
+	text-decoration: none;
+}
+
+div.dataplus_template_buttons{
+	display: block;
+	width: 100%;
+	text-align: center;
+}
+
+div.dataplus_template_buttons input{
+    font-size: 0.9em;
+    width: 24%;
+}
+
+div#dataplus_template_css, div#dataplus_template_javascript{
+	background-color: #cccccc;
+}

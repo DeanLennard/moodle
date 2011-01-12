@@ -1,0 +1,26 @@
+<?php
+/**
+ *
+ * @copyright &copy; 2010 The Open University
+ * @author a.j.forth@open.ac.uk
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+ * @package dataplus
+ */
+
+require_once ($CFG->dirroot.'/course/moodleform_mod.php');
+
+//form containing action buttons for confirming deletion
+class dataplus_comment_form extends moodleform {
+
+    function definition() {
+    	global $dataplus;
+
+        $mform =&$this->_form;
+        $mform->addElement('html','<a name="amendcomment"></a>');
+        $mform->addElement('htmleditor', 'comment', get_string('comment', 'dataplus'));
+        
+        $this->add_action_buttons(true,$dataplus->savebuttonlabel);
+  		
+    }
+
+}
