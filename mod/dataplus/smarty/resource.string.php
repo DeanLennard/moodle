@@ -9,8 +9,6 @@
  * Credits:  
  * Purpose:  using php strings as smarty resouces
  * Input:    
- *           
- *           
  *
  * Examples: $smarty->display ("string:<b>{$foo}</b>");
  * -------------------------------------------------------------
@@ -18,7 +16,7 @@
 
 
 
-function smarty_resource_string_source ($tpl_name, &$tpl_source, &$smarty_obj){
+function smarty_resource_string_source($tpl_name, &$tpl_source, &$smarty_obj){
   $tpl_source = $tpl_name;
   return true;
 }

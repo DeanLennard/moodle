@@ -24,21 +24,22 @@ $context = get_context_instance(CONTEXT_COURSE, $course->id);
 add_to_log($course->id, "dataplus", "view all", "index.php?id=$course->id", "");
 
 $str_dataplus = get_string("modulename", "dataplus");
-$str_rss      = get_string("rss");
-$str_name     = get_string("name");
-$str_week     = get_string("week");
-$str_topic    = get_string("topic");
-$str_size     = get_string("size", "dataplus");
+$str_rss = get_string("rss");
+$str_name = get_string("name");
+$str_week = get_string("week");
+$str_topic = get_string("topic");
+$str_size = get_string("size", "dataplus");
 
 $navlinks = array();
-$navlinks[] = array('name' => $str_dataplus, 
-                    'link' => "index.php?id=$course->id", 
-                    'type' => 'activity');
+$navlinks[] = array(
+    'name' => $str_dataplus, 
+    'link' => "index.php?id=$course->id", 
+    'type' => 'activity');
 $navigation = build_navigation($navlinks);
 
-print_header_simple($str_dataplus, "", $navigation, "", "", true, "", navmenu($course));
+print_header_simple($str_dataplus, '', $navigation, '', '', true, '', navmenu($course));
 
-if (! $datapluss = get_all_instances_in_course("dataplus", $course)) {
+if (!$datapluss = get_all_instances_in_course("dataplus", $course)) {
     notice(get_string('thereareno', 'moodle', $str_dataplus), "../../course/view.php?mode=view&amp;id=$course->id");
     die;
 }
@@ -95,13 +96,12 @@ foreach ($datapluss as $dataplus) {
         $rsslink = rss_get_link($course->id, $USER->id, 'data', $data->id, 'RSS');
     }
 
-    $filepath = $CFG->dataroot . '/' . $id . '/moddata/dataplus/' . $dataplus->id . '/' . $dataplus->id . '.sqlite';
+    $filepath = $CFG->dataroot.'/'.$id.'/moddata/dataplus/'.$dataplus->id.'/'.$dataplus->id.'.sqlite';
 
-    if(file_exists($filepath)){
+    if (file_exists($filepath)) {
         $file_size = filesize($filepath);
-        $size      = round($file_size/1000) . 'k';
-    }
-    else {
+        $size = round($file_size/1000).'k';
+    } else {
         $size = '0k';
     }
 
@@ -119,9 +119,5 @@ foreach ($datapluss as $dataplus) {
 }
 
 echo "<br />";
-
 echo html_writer::table($table);
-
-/// Finish the page
-
 echo $OUTPUT->footer();

@@ -12,15 +12,13 @@ require_once ($CFG->dirroot.'/course/moodleform_mod.php');
 //form containing action buttons for confirming deletion
 class dataplus_comment_form extends moodleform {
 
-    function definition() {
-    	global $dataplus;
+    function definition(){
+        global $dataplus;
 
         $mform =&$this->_form;
         $mform->addElement('html','<a name="amendcomment"></a>');
         $mform->addElement('htmleditor', 'comment', get_string('comment', 'dataplus'));
-        
-        $this->add_action_buttons(true,$dataplus->savebuttonlabel);
-  		
-    }
 
+        $this->add_action_buttons(true,$dataplus->savebuttonlabel);
+    }
 }

@@ -47,5 +47,5 @@
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
-  </TABLES>    
+  </TABLES>
 </XMLDB>

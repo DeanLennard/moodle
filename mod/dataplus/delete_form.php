@@ -13,11 +13,8 @@ require_once ($CFG->dirroot.'/course/moodleform_mod.php');
 class dataplus_delete_form extends moodleform {
 
     function definition() {
-
         $mform =&$this->_form;
 
         $this->add_action_buttons(true, get_string('confirmdelete', 'dataplus'));
-  		
     }
-
 }

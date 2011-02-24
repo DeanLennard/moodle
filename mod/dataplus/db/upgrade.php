@@ -15,7 +15,6 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 	$dbman = $DB->get_manager();
 	
     if ($result && $oldversion < 2010012500) {
-
     /// Define field format to be added to data_comments
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('navigationlimit');
@@ -23,9 +22,8 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
     /// Launch add field format
         $result = $result && $dbman->add_field($table, $field);
-
     }
-    
+
     if ($result && $oldversion < 2010012501) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('viewtablabel');
@@ -33,8 +31,7 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
         $result = $result && $dbman->add_field($table, $field);
     }
-    
-    
+
     if ($result && $oldversion < 2010012501) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('viewtabvisible');
@@ -50,8 +47,7 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
         $result = $result && $dbman->add_field($table, $field);
     }
-    
-    
+
     if ($result && $oldversion < 2010012501) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('singlerecordtabvisible');
@@ -59,7 +55,7 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
         $result = $result && $dbman->add_field($table, $field);
     }
-    
+
     if ($result && $oldversion < 2010012501) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('searchtablabel');
@@ -67,8 +63,7 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
         $result = $result && $dbman->add_field($table, $field);
     }
-    
-    
+
     if ($result && $oldversion < 2010012501) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('searchtabvisible');
@@ -84,15 +79,14 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
         $result = $result && $dbman->add_field($table, $field);
     }
-    
-    
+
     if ($result && $oldversion < 2010012502) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('addrecordtabvisible');
         $field->set_attributes(XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '15', 'addrecordtablabel');
 
         $result = $result && $dbman->add_field($table, $field);
-    }  
+    }
 
     if ($result && $oldversion < 2010012502) {
         $table = new xmldb_table('dataplus');
@@ -101,33 +95,30 @@ function xmldb_dataplus_upgrade($oldversion=0) {
 
         $result = $result && $dbman->add_field($table, $field);
     }
-    
-    
+
     if ($result && $oldversion < 2010012502) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('exporttabvisible');
         $field->set_attributes(XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '15', 'exporttablabel');
 
         $result = $result && $dbman->add_field($table, $field);
-    }      
-    
+    }
+
     if ($result && $oldversion < 2010102902) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('maxentriesperuser');
         $field->set_attributes(XMLDB_TYPE_INTEGER, '0', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '15', 'maxentriesperuser');
 
         $result = $result && $dbman->add_field($table, $field);
-    }  
-    
-    
+    }
+
     if ($result && $oldversion < 2010121401) {
         $table = new xmldb_table('dataplus');
         $field = new xmldb_field('allowcomments');
         $field->set_attributes(XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '1', 'allowcomments');
         
         $result = $result && $dbman->add_field($table, $field);
-    }  
-    
-    
+    }
+
     return $result;
 }

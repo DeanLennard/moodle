@@ -5,7 +5,7 @@ require_once('dataplus_file_helper.php');
 
 $dataplus_filehelper = new dataplus_file_helper($COURSE->id, $dataplus->id);
 
-$id   = required_param('id', PARAM_INT);
+$id = required_param('id', PARAM_INT);
 $mode = required_param('mode', null, PARAM_TEXT);
 
 if (! $cm = get_coursemodule_from_id('dataplus', $id)) {
@@ -17,7 +17,7 @@ if (! $dataplus = $DB->get_record("dataplus", array("id"=>$cm->instance))) {
 }
 
 $dataplus_filehelper = new dataplus_file_helper($dataplus->id,'js');
-$dataplus_db         = new sqlite3_db_dataplus($dataplus->id);
+$dataplus_db = new sqlite3_db_dataplus($dataplus->id);
 
 $template = $dataplus_db->get_template($mode);
 
