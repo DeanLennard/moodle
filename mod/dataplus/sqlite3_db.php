@@ -241,7 +241,7 @@ class sqlite3_db {
         $fs = get_file_storage();
         $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
 
-        if ($file->delete()) {
+        if (!$file || $file->delete()) {
             $this->locked = false;
             return true;
         } else {

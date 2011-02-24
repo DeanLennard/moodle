@@ -98,7 +98,7 @@ class dataplus_manage_form extends moodleform {
                     foreach ($result as $name=>$value) {
                         if ($name == $field->name) {
                             if ($field->form_field_type == 'image') {
-                                $path = get_file_url($dataplus_filehelper->get_image_file_path()).$value;
+                                $path = $dataplus_filehelper->get_image_file_path($value);
                                 $alt_name = $field->name.'000alt';
                                 $alt = null;
 
@@ -114,7 +114,7 @@ class dataplus_manage_form extends moodleform {
                                 $mform->addElement('static','image' . $field->name,'',$html);
                                 break;
                             } else if($field->form_field_type == 'file'){ 
-                                $path = get_file_url($dataplus_filehelper->get_file_file_path() . $value);
+                                $path = $dataplus_filehelper->get_file_file_path($value);
                                 $html = "<a href=\"{$path}\">{$value}</a>";
                                 $mform->addElement('static','file' . $field->name,'',$html);
                             }

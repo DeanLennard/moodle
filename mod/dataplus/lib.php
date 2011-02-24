@@ -884,23 +884,11 @@ function dataplus_detail_supporting_record_information(){
  * @return string
  */
 function dataplus_get_template_menu_html(){
-    if (class_exists('ouflags')) {
-        $scnd_class = 'dataplus_templatemenu_OU';
-    } else {
-        $scnd_class = 'dataplus_templatemenu_nonOU';
-    }
-
     return <<<EOF
-<div class="dataplus_templatemenu {$scnd_class}">
-    <div class="dataplus_templatemenu_topright">
-        <div class="dataplus_templatemenu_bottomright">
-            <div class="dataplus_templatemenu_bottomleft">
-                <ul>
-                    [[template content]]
-                </ul>
-            </div>
-        </div>
-    </div>
+<div class="dataplus_templatemenu">
+    <ul>
+        [[template content]]
+    </ul>
 </div>
 EOF;
 }

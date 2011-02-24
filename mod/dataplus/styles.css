@@ -5,46 +5,20 @@ div#dataplus_templateform{
 
 div.dataplus_templatemenu{
     position: absolute;
-    width: 30%;
+    width: 15%;
     margin-top: 2em;
     background:#DBEDFF;
     background-image: url('../../mod/dataplus/pix/ftblue-corner-tl.png');
     background-position: top left;
     background-repeat:no-repeat;
+    left: 32%;
 }
 
-div.dataplus_templatemenu_OU {
-    left; -35%;
-}
-
-div.dataplus_templatemenu_nonOU{
-    left; 5%;
-}
-
-div.dataplus_templatemenu_topright {
-    background-image: url('../../mod/dataplus/pix/ftblue-corner-tr.png');
-    background-position: top right;
-    background-repeat:no-repeat;
-}
-
-div.dataplus_templatemenu_bottomright {
-    background-image: url('../../mod/dataplus/pix/ftblue-corner-br.png');
-    background-position: bottom right;
-    background-repeat:no-repeat;
-}
-
-div.dataplus_templatemenu_bottomleft {
-    background-image: url('../../mod/dataplus/pix/ftblue-corner-bl.png');
-    background-position: bottom left;
-    background-repeat:no-repeat;
-    padding: 8px;
-}
-
-div.dataplus_templatemenu_bottomleft ul{
+div.dataplus_templatemenu ul{
     list-style-type: none;
 }
 
-div.dataplus_templatemenu_bottomleft a{
+div.dataplus_templatemenu a{
     color: #000000;
     text-decoration: none;
 }
