@@ -295,7 +295,13 @@ if ($formdata = $mform->is_cancelled()) {
             }
             if (isset($formdata->$field)) {
                 // process templates
-                $user->$field = process_template($formdata->$field, $user);
+                if (is_array($formdata->$field)) {
+                    foreach ($formdata->$field as $k=>$v) {
+                        $user->$field[$k] = process_template($v, $user);
+                    }
+                } else {
+                    $user->$field = process_template($formdata->$field, $user);
+                }
             }
         }
 
@@ -668,10 +674,16 @@ if ($formdata = $mform->is_cancelled()) {
             $courseid      = $ccache[$shortname]->id;
             $coursecontext = get_context_instance(CONTEXT_COURSE, $courseid);
             if (!isset($manualcache[$courseid])) {
-                if ($instances = enrol_get_instances($courseid, false)) {
-                    $manualcache[$courseid] = reset($instances);
-                } else {
-                    $manualcache[$courseid] = false;
+                $manualcache[$courseid] = false;
+                if ($manual) {
+                    if ($instances = enrol_get_instances($courseid, false)) {
+                        foreach ($instances as $instance) {
+                            if ($instance->enrol === 'manual') {
+                                $manualcache[$courseid] = $instance;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 

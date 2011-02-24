@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/db" VERSION="20101121" COMMENT="XMLDB file for core Moodle tables"
+<XMLDB PATH="lib/db" VERSION="20110209" COMMENT="XMLDB file for core Moodle tables"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
 >
@@ -50,8 +50,9 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="type"/>
         <FIELD NAME="type" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" COMMENT="type: 0==info, 1==notice, 2==error" PREVIOUS="id" NEXT="plugin"/>
         <FIELD NAME="plugin" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="type" NEXT="version"/>
-        <FIELD NAME="version" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="plugin or main version if known" PREVIOUS="plugin" NEXT="info"/>
-        <FIELD NAME="info" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="version" NEXT="details"/>
+        <FIELD NAME="version" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="plugin or main version if known" PREVIOUS="plugin" NEXT="targetversion"/>
+        <FIELD NAME="targetversion" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="version of plugin or core specified in version.php at the time of upgrade loggging" PREVIOUS="version" NEXT="info"/>
+        <FIELD NAME="info" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="targetversion" NEXT="details"/>
         <FIELD NAME="details" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="info" NEXT="backtrace"/>
         <FIELD NAME="backtrace" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="details" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="backtrace" NEXT="timemodified"/>
@@ -573,8 +574,8 @@
     <TABLE NAME="message" COMMENT="Stores all unread messages" PREVIOUS="log_display" NEXT="message_read">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="useridfrom"/>
-        <FIELD NAME="useridfrom" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="useridto"/>
-        <FIELD NAME="useridto" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="useridfrom" NEXT="subject"/>
+        <FIELD NAME="useridfrom" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="useridto"/>
+        <FIELD NAME="useridto" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="useridfrom" NEXT="subject"/>
         <FIELD NAME="subject" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The message subject" PREVIOUS="useridto" NEXT="fullmessage"/>
         <FIELD NAME="fullmessage" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="subject" NEXT="fullmessageformat"/>
         <FIELD NAME="fullmessageformat" TYPE="int" LENGTH="4" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The format of the full message" PREVIOUS="fullmessage" NEXT="fullmessagehtml"/>
@@ -596,8 +597,8 @@
     <TABLE NAME="message_read" COMMENT="Stores all messages that have been read" PREVIOUS="message" NEXT="message_contacts">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="useridfrom"/>
-        <FIELD NAME="useridfrom" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="useridto"/>
-        <FIELD NAME="useridto" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="useridfrom" NEXT="subject"/>
+        <FIELD NAME="useridfrom" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="useridto"/>
+        <FIELD NAME="useridto" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="useridfrom" NEXT="subject"/>
         <FIELD NAME="subject" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The message subject" PREVIOUS="useridto" NEXT="fullmessage"/>
         <FIELD NAME="fullmessage" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="subject" NEXT="fullmessageformat"/>
         <FIELD NAME="fullmessageformat" TYPE="int" LENGTH="4" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The format of the full message" PREVIOUS="fullmessage" NEXT="fullmessagehtml"/>
@@ -1246,6 +1247,9 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="userfieldidx" UNIQUE="false" FIELDS="userid, fieldid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="question_categories" COMMENT="Categories are for grouping questions" PREVIOUS="user_info_data" NEXT="question">
       <FIELDS>
@@ -1935,7 +1939,7 @@
         <FIELD NAME="tagid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="itemtype"/>
         <FIELD NAME="itemtype" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="tagid" NEXT="itemid"/>
         <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="itemtype" NEXT="tiuserid"/>
-        <FIELD NAME="tiuserid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="itemid" NEXT="ordering"/>
+        <FIELD NAME="tiuserid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="itemid" NEXT="ordering"/>
         <FIELD NAME="ordering" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="Maintains the order of the tag instances of an item" PREVIOUS="tiuserid" NEXT="timemodified"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="timemodified" PREVIOUS="ordering"/>
       </FIELDS>
@@ -2596,8 +2600,13 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timecreated"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="contextid"/>
+        <KEY NAME="contextid" TYPE="foreign" FIELDS="contextid" REFTABLE="context" REFFIELDS="id" COMMENT="Relates to context.id" PREVIOUS="primary" NEXT="userid"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="Relates to user.id" PREVIOUS="contextid"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="itemid" UNIQUE="false" FIELDS="itemid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="license" COMMENT="store licenses used by moodle" PREVIOUS="rating" NEXT="registration_hubs">
       <FIELDS>
@@ -2615,10 +2624,11 @@
     <TABLE NAME="registration_hubs" COMMENT="hub where the site is registered on with their associated token" PREVIOUS="license" NEXT="backup_controllers">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="token"/>
-        <FIELD NAME="token" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="hubname"/>
+        <FIELD NAME="token" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="the token to communicate with the hub by web service" PREVIOUS="id" NEXT="hubname"/>
         <FIELD NAME="hubname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="token" NEXT="huburl"/>
         <FIELD NAME="huburl" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="hubname" NEXT="confirmed"/>
-        <FIELD NAME="confirmed" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="huburl"/>
+        <FIELD NAME="confirmed" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="huburl" NEXT="secret"/>
+        <FIELD NAME="secret" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="the unique site identifier for this hub" PREVIOUS="confirmed"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

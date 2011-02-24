@@ -272,12 +272,27 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
     foreach ($plugs as $plug=>$fullplug) {
         $component = $type.'_'.$plug; // standardised plugin name
 
+        // check plugin dir is valid name
+        $cplug = strtolower($plug);
+        $cplug = clean_param($cplug, PARAM_SAFEDIR);
+        $cplug = str_replace('-', '', $cplug);
+        if ($plug !== $cplug) {
+            throw new plugin_defective_exception($component, 'Invalid plugin directory name.');
+        }
+
         if (!is_readable($fullplug.'/version.php')) {
             continue;
         }
 
         $plugin = new stdClass();
         require($fullplug.'/version.php');  // defines $plugin with version etc
+
+        // if plugin tells us it's full name we may check the location
+        if (isset($plugin->component)) {
+            if ($plugin->component !== $component) {
+                throw new plugin_defective_exception($component, 'Plugin installed in wrong folder.');
+            }
+        }
 
         if (empty($plugin->version)) {
             throw new plugin_defective_exception($component, 'Missing version value in version.php');
@@ -396,11 +411,20 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
 
     foreach ($mods as $mod=>$fullmod) {
 
-        if ($mod == 'NEWMODULE') {   // Someone has unzipped the template, ignore it
+        if ($mod === 'NEWMODULE') {   // Someone has unzipped the template, ignore it
             continue;
         }
 
         $component = 'mod_'.$mod;
+
+        // check module dir is valid name
+        $cmod = strtolower($mod);
+        $cmod = clean_param($cmod, PARAM_SAFEDIR);
+        $cmod = str_replace('-', '', $cmod);
+        $cmod = str_replace('_', '', $cmod); // modules MUST not have '_' in name and never will, sorry
+        if ($mod !== $cmod) {
+            throw new plugin_defective_exception($component, 'Invalid plugin directory name.');
+        }
 
         if (!is_readable($fullmod.'/version.php')) {
             throw new plugin_defective_exception($component, 'Missing version.php');
@@ -408,6 +432,13 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
 
         $module = new stdClass();
         require($fullmod .'/version.php');  // defines $module with version etc
+
+        // if plugin tells us it's full name we may check the location
+        if (isset($module->component)) {
+            if ($module->component !== $component) {
+                throw new plugin_defective_exception($component, 'Plugin installed in wrong folder.');
+            }
+        }
 
         if (empty($module->version)) {
             if (isset($module->version)) {
@@ -424,6 +455,11 @@ function upgrade_plugins_modules($startcallback, $endcallback, $verbose) {
             } else if ($module->requires < 2010000000) {
                 throw new plugin_defective_exception($component, 'Plugin is not compatible with Moodle 2.x or later.');
             }
+        }
+
+        // all modules must have en lang pack
+        if (!is_readable("$fullmod/lang/en/$mod.php")) {
+            throw new plugin_defective_exception($component, 'Missing mandatory en language pack.');
         }
 
         $module->name = $mod;   // The name MUST match the directory
@@ -548,6 +584,14 @@ function upgrade_plugins_blocks($startcallback, $endcallback, $verbose) {
 
         $component = 'block_'.$blockname;
 
+        // check block dir is valid name
+        $cblockname = strtolower($blockname);
+        $cblockname = clean_param($cblockname, PARAM_SAFEDIR);
+        $cblockname = str_replace('-', '', $cblockname);
+        if ($blockname !== $cblockname) {
+            throw new plugin_defective_exception($component, 'Invalid plugin directory name.');
+        }
+
         if (!is_readable($fullblock.'/version.php')) {
             throw new plugin_defective_exception('block/'.$blockname, 'Missing version.php file.');
         }
@@ -556,6 +600,13 @@ function upgrade_plugins_blocks($startcallback, $endcallback, $verbose) {
         $plugin->cron    = 0;
         include($fullblock.'/version.php');
         $block = $plugin;
+
+        // if plugin tells us it's full name we may check the location
+        if (isset($block->component)) {
+            if ($block->component !== $component) {
+                throw new plugin_defective_exception($component, 'Plugin installed in wrong folder.');
+            }
+        }
 
         if (!empty($plugin->requires)) {
             if ($plugin->requires > $CFG->version) {
@@ -617,7 +668,7 @@ function upgrade_plugins_blocks($startcallback, $endcallback, $verbose) {
             if ($conflictblock !== false) {
                 // Duplicate block titles are not allowed, they confuse people
                 // AND PHP's associative arrays ;)
-                throw new plugin_defective_exception($component, get_string('blocknameconflict', '', (object)array('name'=>$block->name, 'conflict'=>$conflictblock)));
+                throw new plugin_defective_exception($component, get_string('blocknameconflict', 'error', (object)array('name'=>$block->name, 'conflict'=>$conflictblock)));
             }
             $startcallback($component, true, $verbose);
 
@@ -936,11 +987,8 @@ function upgrade_handle_exception($ex, $plugin = null) {
 /**
  * Adds log entry into upgrade_log table
  *
- * @global object
- * @global object
- * @global object
  * @param int $type UPGRADE_LOG_NORMAL, UPGRADE_LOG_NOTICE or UPGRADE_LOG_ERROR
- * @param string $plugin plugin or null if main
+ * @param string $plugin frankenstyle component name
  * @param string $info short description text of log entry
  * @param string $details long problem description
  * @param string $backtrace string used for errors only
@@ -949,54 +997,80 @@ function upgrade_handle_exception($ex, $plugin = null) {
 function upgrade_log($type, $plugin, $info, $details=null, $backtrace=null) {
     global $DB, $USER, $CFG;
 
-    $plugin = ($plugin==='moodle') ? null : $plugin;
+    if (empty($plugin)) {
+        $plugin = 'core';
+    }
+
+    list($plugintype, $pluginname) = normalize_component($plugin);
+    $component = is_null($pluginname) ? $plugintype : $plugintype . '_' . $pluginname;
 
     $backtrace = format_backtrace($backtrace, true);
 
-    $version = null;
+    $currentversion = null;
+    $targetversion  = null;
 
     //first try to find out current version number
-    if (empty($plugin) or $plugin === 'moodle') {
+    if ($plugintype === 'core') {
         //main
-        $version = $CFG->version;
+        $currentversion = $CFG->version;
 
-    } else if ($plugin === 'local') {
-        //customisation
-        $version = $CFG->local_version;
+        $version = null;
+        include("$CFG->dirroot/version.php");
+        $targetversion = $version;
 
-    } else if (strpos($plugin, 'mod/') === 0) {
+    } else if ($plugintype === 'mod') {
         try {
-            $modname = substr($plugin, strlen('mod/'));
-            $version = $DB->get_field('modules', 'version', array('name'=>$modname));
-            $version = ($version === false) ? null : $version;
+            $currentversion = $DB->get_field('modules', 'version', array('name'=>$pluginname));
+            $currentversion = ($currentversion === false) ? null : $currentversion;
         } catch (Exception $ignored) {
         }
+        $cd = get_component_directory($component);
+        if (file_exists("$cd/version.php")) {
+            $module = new stdClass();
+            $module->version = null;
+            include("$cd/version.php");
+            $targetversion = $module->version;
+        }
 
-    } else if (strpos($plugin, 'block/') === 0) {
+    } else if ($plugintype === 'block') {
         try {
-            $blockname = substr($plugin, strlen('block/'));
-            if ($block = $DB->get_record('block', array('name'=>$blockname))) {
-                $version = $block->version;
+            if ($block = $DB->get_record('block', array('name'=>$pluginname))) {
+                $currentversion = $block->version;
             }
         } catch (Exception $ignored) {
         }
+        $cd = get_component_directory($component);
+        if (file_exists("$cd/version.php")) {
+            $plugin = new stdClass();
+            $plugin->version = null;
+            include("$cd/version.php");
+            $targetversion = $plugin->version;
+        }
 
     } else {
-        $pluginversion = get_config(str_replace('/', '_', $plugin), 'version');
+        $pluginversion = get_config($component, 'version');
         if (!empty($pluginversion)) {
-            $version = $pluginversion;
+            $currentversion = $pluginversion;
+        }
+        $cd = get_component_directory($component);
+        if (file_exists("$cd/version.php")) {
+            $plugin = new stdClass();
+            $plugin->version = null;
+            include("$cd/version.php");
+            $targetversion = $plugin->version;
         }
     }
 
     $log = new stdClass();
-    $log->type         = $type;
-    $log->plugin       = $plugin;
-    $log->version      = $version;
-    $log->info         = $info;
-    $log->details      = $details;
-    $log->backtrace    = $backtrace;
-    $log->userid       = $USER->id;
-    $log->timemodified = time();
+    $log->type          = $type;
+    $log->plugin        = $component;
+    $log->version       = $currentversion;
+    $log->targetversion = $targetversion;
+    $log->info          = $info;
+    $log->details       = $details;
+    $log->backtrace     = $backtrace;
+    $log->userid        = $USER->id;
+    $log->timemodified  = time();
     try {
         $DB->insert_record('upgrade_log', $log);
     } catch (Exception $ignored) {

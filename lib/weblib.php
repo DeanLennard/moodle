@@ -389,11 +389,13 @@ class moodle_url {
             if (is_int($key)) {
                 throw new coding_exception('Url parameters can not have numeric keys!');
             }
-            if (is_array($value)) {
-                throw new coding_exception('Url parameters values can not be arrays!');
-            }
-            if (is_object($value) and !method_exists($value, '__toString')) {
-                throw new coding_exception('Url parameters values can not be objects, unless __toString() is defined!');
+            if (!is_string($value)) {
+                if (is_array($value)) {
+                    throw new coding_exception('Url parameters values can not be arrays!');
+                }
+                if (is_object($value) and !method_exists($value, '__toString')) {
+                    throw new coding_exception('Url parameters values can not be objects, unless __toString() is defined!');
+                }
             }
             $this->params[$key] = (string)$value;
         }
@@ -486,7 +488,11 @@ class moodle_url {
      */
     public function get_query_string($escaped = true, array $overrideparams = null) {
         $arr = array();
-        $params = $this->merge_overrideparams($overrideparams);
+        if ($overrideparams !== null) {
+            $params = $this->merge_overrideparams($overrideparams);
+        } else {
+            $params = $this->params;
+        }
         foreach ($params as $key => $val) {
            $arr[] = rawurlencode($key)."=".rawurlencode($val);
         }
@@ -817,13 +823,12 @@ function close_window($delay = 0, $reloadopener = false) {
     }
 
     if ($reloadopener) {
-        $function = 'close_window_reloading_opener';
-    } else {
-        $function = 'close_window';
+        // Trigger the reload immediately, even if the reload is after a delay.
+        $PAGE->requires->js_function_call('window.opener.location.reload', array(true));
     }
-    echo '<p class="centerpara">' . get_string('windowclosing') . '</p>';
+    $OUTPUT->notification(get_string('windowclosing'), 'notifysuccess');
 
-    $PAGE->requires->js_function_call($function, null, false, $delay);
+    $PAGE->requires->js_function_call('close_window', array(new stdClass()), false, $delay);
 
     echo $OUTPUT->footer();
     exit;
@@ -1099,6 +1104,13 @@ function format_text($text, $format = FORMAT_MOODLE, $options = NULL, $courseid_
             }
             $text = $filtermanager->filter_text($text, $context, array('originalformat' => $format));
             break;
+    }
+    if ($options['filter']) {
+        // at this point there should not be any draftfile links any more,
+        // this happens when developers forget to post process the text.
+        // The only potential problem is that somebody might try to format
+        // the text before storing into database which would be itself big bug.
+        $text = str_replace("\"$CFG->httpswwwroot/draftfile.php", "\"$CFG->httpswwwroot/brokenfile.php#", $text);
     }
 
     // Warn people that we have removed this old mechanism, just in case they
@@ -1954,7 +1966,7 @@ function get_separator() {
  * @return string|void If $return is false, returns nothing, otherwise returns a string of HTML.
  */
 function print_collapsible_region($contents, $classes, $id, $caption, $userpref = '', $default = false, $return = false) {
-    $output  = print_collapsible_region_start($classes, $id, $caption, $userpref, true, true);
+    $output  = print_collapsible_region_start($classes, $id, $caption, $userpref, $default, true);
     $output .= $contents;
     $output .= print_collapsible_region_end(true);
 
@@ -1970,21 +1982,20 @@ function print_collapsible_region($contents, $classes, $id, $caption, $userpref 
  * be clicked to expand or collapse the region. If JavaScript is off, then the region
  * will always be expanded.
  *
- * @global object
  * @param string $classes class names added to the div that is output.
  * @param string $id id added to the div that is output. Must not be blank.
  * @param string $caption text displayed at the top. Clicking on this will cause the region to expand or contract.
- * @param boolean $userpref the name of the user preference that stores the user's preferred default state.
+ * @param string $userpref the name of the user preference that stores the user's preferred default state.
  *      (May be blank if you do not wish the state to be persisted.
  * @param boolean $default Initial collapsed state to use if the user_preference it not set.
  * @param boolean $return if true, return the HTML as a string, rather than printing it.
  * @return string|void if $return is false, returns nothing, otherwise returns a string of HTML.
  */
-function print_collapsible_region_start($classes, $id, $caption, $userpref = false, $default = false, $return = false) {
+function print_collapsible_region_start($classes, $id, $caption, $userpref = '', $default = false, $return = false) {
     global $CFG, $PAGE, $OUTPUT;
 
     // Work out the initial state.
-    if (is_string($userpref)) {
+    if (!empty($userpref) and is_string($userpref)) {
         user_preference_allow_ajax_update($userpref, PARAM_BOOL);
         $collapsed = get_user_preferences($userpref, $default);
     } else {
@@ -2168,7 +2179,8 @@ function navmenulist($course, $sections, $modinfo, $strsection, $strjumpto, $wid
 
     $menu[] = '<ul class="navmenulist"><li class="jumpto section"><span>'.$strjumpto.'</span><ul>';
     foreach ($modinfo->cms as $mod) {
-        if ($mod->modname == 'label') {
+        if (!$mod->has_view()) {
+            // Don't show modules which you can't link to!
             continue;
         }
 

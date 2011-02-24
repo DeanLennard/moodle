@@ -321,7 +321,7 @@ function file_get_unused_draft_itemid() {
  * @return string if $text was passed in, the rewritten $text is returned. Otherwise NULL.
  */
 function file_prepare_draft_area(&$draftitemid, $contextid, $component, $filearea, $itemid, array $options=null, $text=null) {
-    global $CFG, $USER;
+    global $CFG, $USER, $CFG;
 
     $options = (array)$options;
     if (!isset($options['subdirs'])) {
@@ -350,6 +350,12 @@ function file_prepare_draft_area(&$draftitemid, $contextid, $component, $fileare
                 }
                 $fs->create_file_from_storedfile($file_record, $file);
             }
+        }
+        if (!is_null($text)) {
+            // at this point there should not be any draftfile links yet,
+            // because this is a new text from database that should still contain the @@pluginfile@@ links
+            // this happens when developers forget to post process the text
+            $text = str_replace("\"$CFG->httpswwwroot/draftfile.php", "\"$CFG->httpswwwroot/brokenfile.php#", $text);
         }
     } else {
         // nothing to do
@@ -713,18 +719,26 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
         return null;
     }
 
-    // relink embedded files if text submitted - no absolute links allowed in database!
-    if ($CFG->slasharguments) {
-        $draftbase = "$CFG->wwwroot/draftfile.php/$usercontext->id/user/draft/$draftitemid/";
-    } else {
-        $draftbase = "$CFG->wwwroot/draftfile.php?file=/$usercontext->id/user/draft/$draftitemid/";
-    }
-
+    $wwwroot = $CFG->wwwroot;
     if ($forcehttps) {
-        $draftbase = str_replace('http://', 'https://', $draftbase);
+        $wwwroot = str_replace('http://', 'https://', $wwwroot);
     }
 
-    $text = str_ireplace($draftbase, '@@PLUGINFILE@@/', $text);
+    // relink embedded files if text submitted - no absolute links allowed in database!
+    $text = str_ireplace("$wwwroot/draftfile.php/$usercontext->id/user/draft/$draftitemid/", '@@PLUGINFILE@@/', $text);
+
+    if (strpos($text, 'draftfile.php?file=') !== false) {
+        $matches = array();
+        preg_match_all("!$wwwroot/draftfile.php\?file=%2F{$usercontext->id}%2Fuser%2Fdraft%2F{$draftitemid}%2F[^'\",&<>|`\s:\\\\]+!iu", $text, $matches);
+        if ($matches) {
+            foreach ($matches[0] as $match) {
+                $replace = str_ireplace('%2F', '/', $match);
+                $text = str_replace($match, $replace, $text);
+            }
+        }
+        $text = str_ireplace("$wwwroot/draftfile.php?file=/$usercontext->id/user/draft/$draftitemid/", '@@PLUGINFILE@@/', $text);
+    }
+
 
     return $text;
 }
@@ -1698,7 +1712,7 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
                     $ranges = false;
                 }
                 if ($ranges) {
-                    $handle = fopen($filename, 'rb');
+                    $handle = fopen($path, 'rb');
                     byteserving_send_file($handle, $mimetype, $ranges, $filesize);
                 }
             }

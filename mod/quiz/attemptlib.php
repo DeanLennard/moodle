@@ -375,14 +375,14 @@ class quiz {
         $this->pagequestionids = array();
 
         // Get the appropriate layout string (from quiz or attempt).
-        $layout = $this->get_layout_string();
+        $layout = quiz_clean_layout($this->get_layout_string(), true);
         if (empty($layout)) {
             // Nothing to do.
             return;
         }
 
         // Break up the layout string into pages.
-        $pagelayouts = explode(',0', quiz_clean_layout($layout, true));
+        $pagelayouts = explode(',0', $layout);
 
         // Strip off any empty last page (normally there is one).
         if (end($pagelayouts) == '') {
@@ -536,7 +536,7 @@ class quiz_attempt extends quiz {
     public function load_specific_question_state($questionid, $stateid) {
         global $DB;
         $state = question_load_specific_state($this->questions[$questionid],
-                $this->quiz, $this->attempt, $stateid);
+                $this->quiz, $this->attempt->uniqueid, $stateid);
         if ($state === false) {
             throw new moodle_quiz_exception($this, 'invalidstateid');
         }
@@ -590,6 +590,29 @@ class quiz_attempt extends quiz {
         global $USER;
         return $this->attempt->userid == $USER->id &&
                 (!$this->is_preview_user() || $this->attempt->preview);
+    }
+
+    /**
+     * Is the current user allowed to review this attempt. This applies when
+     * {@link is_own_attempt()} returns false.
+     * @return bool whether the review should be allowed.
+     */
+    public function is_review_allowed() {
+        if (!$this->has_capability('mod/quiz:viewreports')) {
+            return false;
+        }
+
+        $cm = $this->get_cm();
+        if ($this->has_capability('moodle/site:accessallgroups') ||
+                groups_get_activity_groupmode($cm) != SEPARATEGROUPS) {
+            return true;
+        }
+
+        // Check the users have at least one group in common.
+        $teachersgroups = groups_get_activity_allowed_groups($cm);
+        $studentsgroups = groups_get_all_groups($cm->course, $this->attempt->userid, $cm->groupingid);
+        return $teachersgroups && $studentsgroups &&
+                array_intersect(array_keys($teachersgroups), array_keys($studentsgroups));
     }
 
     /**

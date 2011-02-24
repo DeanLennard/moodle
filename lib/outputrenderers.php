@@ -324,7 +324,7 @@ class core_renderer extends renderer_base {
             $output .= html_writer::empty_tag('link', array('rel' => 'alternate',
                     'type' => $type, 'title' => $alt->title, 'href' => $alt->url));
         }
-        
+
         if (!empty($CFG->additionalhtmlhead)) {
             $output .= "\n".$CFG->additionalhtmlhead;
         }
@@ -2409,12 +2409,12 @@ EOD;
             return '';
         }
         if ($item->action instanceof action_link) {
-            //TODO: to be replaced with something else
             $link = $item->action;
             if ($item->hidden) {
                 $link->add_class('dimmed');
             }
-            $content = $this->output->render($link);
+            $link->text = $content.$link->text; // add help icon
+            $content = $this->render($link);
         } else if ($item->action instanceof moodle_url) {
             $attributes = array();
             if ($title !== '') {
@@ -2719,9 +2719,9 @@ class core_renderer_ajax extends core_renderer {
     public function header() {
         // unfortunately YUI iframe upload does not support application/json
         if (!empty($_FILES)) {
-            @header('Content-type: text/plain');
+            @header('Content-type: text/plain; charset=utf-8');
         } else {
-            @header('Content-type: application/json');
+            @header('Content-type: application/json; charset=utf-8');
         }
 
         /// Headers to make it not cacheable and json

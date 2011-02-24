@@ -38,7 +38,13 @@ class message_output_email extends message_output {
      * @param object $eventdata the event data submitted by the message sender plus $eventdata->savedmessageid
      */
     function send_message($eventdata) {
-        global $SITE;
+        global $CFG;
+
+        if (!empty($CFG->noemailever)) {
+            // hidden setting for development sites, set in config.php if needed
+            debugging('$CFG->noemailever active, no email message sent.', DEBUG_MINIMAL);
+            return true;
+        }
 
         //hold onto email preference because /admin/cron.php sends a lot of messages at once
         static $useremailaddresses = array();
@@ -79,7 +85,9 @@ class message_output_email extends message_output {
      * @param array $preferences preferences array
      */
     function process_form($form, &$preferences){
-        $preferences['message_processor_email_email'] = $form->email_email;
+        if (isset($form->email_email)) {
+            $preferences['message_processor_email_email'] = $form->email_email;
+        }
     }
 
     /**
