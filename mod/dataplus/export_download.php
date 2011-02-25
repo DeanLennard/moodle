@@ -52,6 +52,14 @@ $zippacker = get_file_packer('application/zip');
 
 mkdir($to_zip_path);
 
+$db_file_info = array(
+                    'component' => 'mod_dataplus',
+                    'filearea' => 'dataplus',
+                    'itemid' => $dataplus->id,
+                    'contextid' => $context->id,
+                    'filepath' => '/',
+                    'filename' => (string) $dataplus->id .'.sqlite'); 
+
 //code for the download of a simple SQLite3 database or a CSV file
 if ($mode == 'simple' || $mode == 'csv') {
     $currentgroup = groups_get_activity_group($cm);
@@ -59,7 +67,7 @@ if ($mode == 'simple' || $mode == 'csv') {
     $db_id = 'db'.$rand;
 
     //make a copy of the database to prepare for download
-    $dataplus_filehelper->copy($zip_path,$to_zip_path.'/'.$db_id.'.sqlite');
+    $dataplus_filehelper->copy($db_file_info,$to_zip_path.'/'.$db_id.'.sqlite');
 
     $dataplus_db = new sqlite3_db_dataplus($db_id);
 

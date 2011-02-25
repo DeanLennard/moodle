@@ -1104,7 +1104,9 @@ function dataplus_print_template_output($template, $results, $clear_actions = fa
             if ($form_field_type == 'date' && !empty($value)) {
                 $value = date('d F Y',$value);
             } else if (($form_field_type == 'datetime' || (empty($form_field_type) && $type == 'date')) && !empty($value)) {
-                $value = date('d F Y H:i',$value);
+                if(is_long($value)){
+                    $value = date('d F Y H:i',$value);
+                }
             } else if($form_field_type == 'image' && !empty($value)) {
                 $path = $dataplus_filehelper->get_image_file_path($value);
 

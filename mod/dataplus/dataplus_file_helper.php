@@ -273,8 +273,8 @@ class dataplus_file_helper {
     /**
      * Copy a directory including any subdirs, either from filesystem of Moodle file area.
      *
-     * @param string $from
-     * @param string $to
+     * @param mixed $from
+     * @param mixed $to
      * @param array $exclude 
      * @return boolean
      */
@@ -339,14 +339,14 @@ class dataplus_file_helper {
      */
     private function copy_filearea_to_filesystem($from, $to, $exclude){
         $fs = get_file_storage();
-        $files = $fs->get_area_files($from->contextid, $from->component, $from->filearea, $from->itemid);
+        $files = $fs->get_area_files($from['contextid'], $from['component'], $from['filearea'], $from['itemid']);
 
         if (empty($files)) {
             return true;
         }
 
         foreach ($files as $f) {
-            if($from->filepath != '/' && $from->filepath != $f->filepath){
+            if($from['filepath']!= '/' && $from['filepath'] != $f['filepath']){
                 continue;
             }
 
@@ -387,8 +387,8 @@ class dataplus_file_helper {
             $filearea_path = resolve_fileinfo_filepath($filearea_path);
 
             $fileinfo = $to;
-            $fileinfo->filepath = $filearea_path;
-            $fileinfo->filename = $file;
+            $fileinfo['filepath'] = $filearea_path;
+            $fileinfo['filename'] = $file;
 
             if (!$fs->create_file_from_pathname($fileinfo,$path)) {
                 return false;
@@ -412,8 +412,8 @@ class dataplus_file_helper {
                 $filearea_path = resolve_fileinfo_filepath($filearea_path);
 
                 $fileinfo = $to;
-                $fileinfo->filepath = $filearea_path;
-                $fileinfo->filename = $file;
+                $fileinfo['filepath'] = $filearea_path;
+                $fileinfo['filename'] = $file;
 
                 if (!$fs->create_file_from_pathname($fileinfo,$path)) {
                     return false;
@@ -458,14 +458,14 @@ class dataplus_file_helper {
      */
     private function copy_filearea_to_filearea($from, $to, $exclude){
         $fs = get_file_storage();
-        $files = $fs->get_area_files($from->contextid, $from->component, $from->filearea, $from->itemid);
+        $files = $fs->get_area_files($from['contextid'], $from['component'], $from['filearea'], $from['itemid']);
 
         if (empty($files)) {
             return true;
         }
 
         foreach ($files as $f) {
-            if ($from->filepath != '/' && $from->filepath != $f->filepath) {
+            if ($from['filepath'] != '/' && $from['filepath'] != $f['filepath']) {
                 continue;
             }
 
@@ -474,8 +474,8 @@ class dataplus_file_helper {
             }
 
             $fileinfo = $to;
-            $fileinfo->filepath = $f->filepath;
-            $fileinfo->filename = $f->filename;
+            $fileinfo['filepath'] = $f->filepath;
+            $fileinfo['filename'] = $f->filename;
 
             $fs->create_file_from_string($fileinfo, $f->get_content());
         }

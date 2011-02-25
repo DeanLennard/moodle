@@ -996,12 +996,12 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $name
      * @return boolean
      */
-    private	function delete_supporting_column($name,$exra = ''){
+    private	function delete_supporting_column($name,$extra = ''){
         $cols = $this->list_dataplus_table_columns(true);
         $result = false;
 
         foreach ($cols as $col) {
-            if ($col->name == $name . $extra . $this->get_supporting_suffix()) {
+            if ($col->name == $name.$extra.$this->get_supporting_suffix()) {
                 $result = $this->delete_column($col->id);
 
                 break;
