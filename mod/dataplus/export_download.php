@@ -233,7 +233,7 @@ else if ((has_capability('mod/dataplus:downloadfull', $context))) {
 }
 
 //generate the url for the archive and trigger download.
-$download_url = get_file_url($dataplus_filehelper->get_temp_path_relative().'/'.$filename);
+$download_url = $CFG->wwwroot.'/file.php/2/'.$dataplus_filehelper->get_temp_path_relative().'/'.$filename;
 
 header('Location:' . $download_url);
 

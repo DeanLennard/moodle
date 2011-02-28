@@ -188,6 +188,17 @@ class dataplus_file_helper {
         return $this->temp_path;
     }
 
+    
+    /**
+     * return the relative temp path
+     * 
+     * @return string
+     */
+    public function get_temp_path_relative(){
+        global $CFG;
+
+        return str_replace($CFG->dataroot,'',$this->get_temp_path());
+    }
 
     /**
      * check the tozip directory for this instance exists, if not create it and return the path
@@ -350,17 +361,17 @@ class dataplus_file_helper {
                 continue;
             }
 
-            if (in_array($f->filename,$exclude)) {
+            if (in_array($f->get_filename(),$exclude) || $f->get_filename() == '.' || $f->get_filename() == '..') {
                 continue;
             }
 
-            $path = $to.$f->filepath;
+            $path = $to.$f->get_filepath();
             
             if (!file_exists($path)) {
                 mkdir($path);
             }
 
-            if (!$file->copy_content_to($path)) {
+            if (!$f->copy_content_to($path.'/'.$f->get_filename())) {
                 return false;
             }
         }
@@ -533,5 +544,20 @@ class dataplus_file_helper {
         }
 
         return true;
+    }
+
+
+    /**
+     * create a directory if it doesn't exist.
+     *
+     * @param string $path
+     * @return boolean
+     */
+    public function create_dir($path){
+        if(!file_exists($path)){
+            return mkdir($path);
+        }
+
+        return false;
     }
 }
