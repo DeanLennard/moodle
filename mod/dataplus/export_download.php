@@ -42,34 +42,33 @@ $image_fileinfo = $dataplus_filehelper->get_image_fileinfo();
 $file_fileinfo = $dataplus_filehelper->get_file_fileinfo();
 $tozip_path = $dataplus_filehelper->get_tozip_path();
 
-$rand = mt_rand(1,1000000);
-
 //setup a zip archive
-$filename = 'db'.$rand.'.zip';
-$zip_path = $temp_path.'/'.$filename;
+$zip_id = $COURSE->id.$USER->id.$dataplus->id;
+$zip_filename = 'dataplus'.$dataplus->id.'.zip';
+$zip_path = $temp_path.'/'.$zip_filename;
 $to_zip_path = $dataplus_filehelper->get_tozip_path();
 $zippacker = get_file_packer('application/zip');
 
 mkdir($to_zip_path);
 
-$db_file_info = array(
-                    'component' => 'mod_dataplus',
-                    'filearea' => 'dataplus',
-                    'itemid' => $dataplus->id,
-                    'contextid' => $context->id,
-                    'filepath' => '/',
-                    'filename' => (string) $dataplus->id .'.sqlite'); 
+$zip_file_info = $dataplus_filehelper->get_zip_fileinfo();
+$zip_file_info['itemid'] = $zip_id;
+$zip_file_info['filename'] = $zip_filename;
+
+$db_file_info = $dataplus_filehelper->get_file_fileinfo();
+$db_file_info['filearea'] = 'dataplus';
+$db_file_info['itemid'] = $dataplus->id;
+$db_file_info['filename'] = (string) $dataplus->id .'.sqlite'; 
+
+//make a copy of the database to prepare for download
+$dataplus_filehelper->copy($db_file_info,$to_zip_path);
+$database_file_path = $to_zip_path.'/'.$dataplus->id.'.sqlite';
 
 //code for the download of a simple SQLite3 database or a CSV file
 if ($mode == 'simple' || $mode == 'csv') {
     $currentgroup = groups_get_activity_group($cm);
 
-    $db_id = 'db'.$rand;
-
-    //make a copy of the database to prepare for download
-    $dataplus_filehelper->copy($db_file_info,$to_zip_path.'/'.$db_id.'.sqlite');
-
-    $dataplus_db = new sqlite3_db_dataplus($db_id);
+    $dataplus_db = new sqlite3_db_dataplus($dataplus->id, false, $database_file_path);
 
     $cols = $dataplus_db->list_dataplus_table_columns(true);
 
@@ -101,10 +100,10 @@ if ($mode == 'simple' || $mode == 'csv') {
 
         $cols = $dataplus_db->list_dataplus_table_columns(true);
 
-
         foreach ($cols as $col) {
             if ($col->form_field_type == 'file' || $col->form_field_type == 'image') {
                 $col_name = $col->name;
+
                 $filenames = $dataplus_db->query_dataplus_database(array($col_name));
 
                 foreach ($filenames as $fn) {
@@ -161,7 +160,7 @@ if ($mode == 'simple' || $mode == 'csv') {
     if ($mode == 'csv') {
         $all_records = $dataplus_db->query_dataplus_database();
 
-        $data_file_name = 'db'.$rand.'.csv';
+        $data_file_name = $dataplus->id.'.csv';
         $csv_path = $tozip_path.'/'.$data_file_name;
 
         $content = '';
@@ -193,12 +192,10 @@ if ($mode == 'simple' || $mode == 'csv') {
     }
     //if simple, drop the supporting tables leaving only the core module data.
     else {
-        $data_file_name = $db_id . '.sqlite';
+        $data_file_name = $dataplus->id.'.sqlite';
         $dataplus_db->drop_table('column');
         $dataplus_db->drop_table('templates');
     }
-
-    fulldelete($tozip_path . '/lock.txt');
 
     //listing of everything under tozip.  This appears to be the only way to zipfiles to not put everything in a 
     //sub-directory called tozip.
@@ -207,35 +204,54 @@ if ($mode == 'simple' || $mode == 'csv') {
 
     while (false !== ($entry = $d->read())) {
         if ($entry != '.' && $entry != '..') {
-            $file_to_zip[] = $tozip_path.'/'.$entry;
+            $to_zip = $tozip_path.'/'.$entry;
+
+            if(strpos($to_zip,'.') === false){
+                $zip_dir = $entry;
+            } else {
+                $zip_dir = '/';
+            }
+
+            $file_to_zip[$zip_dir] = $tozip_path.'/'.$entry;
         }
     }
-
-    $zippacker->archive_to_pathname($file_to_zip,$zip_path);
-
-    fulldelete($tozip_path);
+var_dump($file_to_zip);
+    $zippacker->archive_to_storage($file_to_zip,
+                                   $zip_file_info['contextid'],
+                                   $zip_file_info['component'],
+                                   $zip_file_info['filearea'],
+                                   $zip_file_info['itemid'],
+                                   $zip_file_info['filepath'],
+                                   $zip_file_info['filename']);
 }
 //if a full dataplus database is being downloaded, add all supporting files to the archive.
 else if ((has_capability('mod/dataplus:downloadfull', $context))) {
     $dataplus_db = new sqlite3_db_dataplus($dataplus->id);
     $data_file_name = $dataplus_db->get_db_file_name();
     $path = $dataplus_filehelper->get_temp_path();
-    
+
     $dataplus_filehelper->copy($image_fileinfo,$dataplus_filehelper->get_tozip_images_path());
     $dataplus_filehelper->copy($file_fileinfo,$dataplus_filehelper->get_tozip_files_path());
-    
-    $file_to_zip[] = $dataplus_filehelper->get_tozip_images_path();
-    $file_to_zip[] = $dataplus_filehelper->get_tozip_files_path();
-    $file_to_zip[] = $path . '/' . $data_file_name;
-    $zippacker->archive_to_pathname($file_to_zip,$zip_path);
+
+    $file_to_zip['images'] = $dataplus_filehelper->get_tozip_images_path();
+    $file_to_zip['files'] = $dataplus_filehelper->get_tozip_files_path();
+    $file_to_zip['/'] = $database_file_path;
+
+    $zippacker->archive_to_storage($file_to_zip,
+                                   $zip_file_info['contextid'],
+                                   $zip_file_info['component'],
+                                   $zip_file_info['filearea'],
+                                   $zip_file_info['itemid'],
+                                   $zip_file_info['filepath'],
+                                   $zip_file_info['filename']);
 } else {
     print_error("Export selections misset or you do not have the correct permissions to proceed");
 }
 
 //generate the url for the archive and trigger download.
-$download_url = $CFG->wwwroot.'/file.php/2/'.$dataplus_filehelper->get_temp_path_relative().'/'.$filename;
-
+$download_url = $dataplus_filehelper->get_zip_file_path($zip_id);
+$SESSION->dataplus_file_to_delete = array('filename' => $zip_file_info['filename'],
+                                          'itemid' => $zip_file_info['itemid'],
+                                          'type' => $zip_file_info['filearea']);
+//$dataplus_filehelper->close();
 header('Location:' . $download_url);
-
-rmdir($to_zip_path);
-$dataplus_filehelper->close();

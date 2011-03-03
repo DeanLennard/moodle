@@ -342,7 +342,7 @@ function dataplus_base_setup(){
     require_once('dataplus_file_helper.php');
     require_once('sqlite3_db_dataplus.php');
 
-    global $PAGE, $DB, $id, $mode, $cm, $CFG, $COURSE, $dataplus, $dataplus_filehelper, $dataplus_db, $context, $currentgroup, $groupmode, $editing_modes;
+    global $PAGE, $SESSION, $DB, $id, $mode, $cm, $CFG, $COURSE, $dataplus, $dataplus_filehelper, $dataplus_db, $context, $currentgroup, $groupmode, $editing_modes;
 
     $id = required_param('id', PARAM_INT);
     $mode = optional_param('mode', null, PARAM_TEXT);
@@ -365,6 +365,12 @@ function dataplus_base_setup(){
 
     //instantiate the file helper and make sure temp folder is clear
     $dataplus_filehelper = new dataplus_file_helper($dataplus->id);
+    
+    if(isset($SESSION->dataplus_file_to_delete)){
+        $todelete = $SESSION->dataplus_file_to_delete;
+        $dataplus_filehelper->delete_file($todelete['filename'],$todelete['itemid'],$todelete['type']);
+        unset($SESSION->dataplus_file_to_delete);
+    }
 
     //check whether we need to lock the database by seeing if any data has been submitted and it's not a search
     if(empty($_POST) || strstr($mode,'search')){
@@ -1786,7 +1792,7 @@ function dataplus_maximum_entry_limit_reached(){
 
     $user_entries = $dataplus_db->count_user_entries();
 
-    if (!empty($dataplus->maxentries) && $user_entries >= $dataplus->maxentriesperuser) {
+    if (!empty($dataplus->maxentriesperuser) && $user_entries >= $dataplus->maxentriesperuser) {
         return true;
     }
 

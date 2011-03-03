@@ -10,7 +10,6 @@ class sqlite3_db {
     private $conn;
     private $file_info;
     private $temp_db_path;
-    private $temp_path;
     private $locked = false;
 
     /**
@@ -18,11 +17,11 @@ class sqlite3_db {
      *  Sets the new_database variable if the database had to be created.
      *
      * @param int $db_id
+     * @param boolean $lock
+     * @param string $path
      */
-    public function __construct($db_id, $lock = false){
+    public function __construct($db_id, $lock = false, $path = null){
         global $context, $CFG, $USER;
-
-        $fs = get_file_storage();
 
         $this->fileinfo = array(
             'component' => 'mod_dataplus',
@@ -39,35 +38,10 @@ class sqlite3_db {
             }
         }
 
-        $this->temp_path = $CFG->dataroot.'/temp/dataplus/';
-
-        if (!file_exists($this->temp_path)) {
-            mkdir($this->temp_path);
-        }
-
-        $this->temp_path .= $this->fileinfo['contextid'];
-
-        if (!file_exists($this->temp_path)) {
-            mkdir($this->temp_path);
-        }
-
-        $this->temp_path .= '/'.$USER->id;
-
-        if (!file_exists($this->temp_path)) {
-            mkdir($this->temp_path);
-        }
-
-        $this->temp_db_path = $this->temp_path.'/'.$this->get_db_file_name();
-
-        $file = $fs->get_file($this->fileinfo['contextid'],
-                              $this->fileinfo['component'],
-                              $this->fileinfo['filearea'],
-                              $this->fileinfo['itemid'],
-                              $this->fileinfo['filepath'],
-                              $this->fileinfo['filename']);
-
-        if (!empty($file)) {
-            $file->copy_content_to($this->temp_db_path);
+        if(empty($path)){
+            $this->create_temporary_copy();
+        } else {
+            $this->temp_db_path = $path;
         }
 
         $this->conn = new PDO('sqlite:'.$this->temp_db_path);
@@ -104,6 +78,50 @@ class sqlite3_db {
         }
     }
 
+
+    /**
+     * Creates a temporary folder structure for the sqlite db and copies to it from the repository
+     * 
+     * @return boolean
+     */
+    private function create_temporary_copy(){
+        global $CFG, $USER;
+
+        $fs = get_file_storage();
+
+        $temp_path = $CFG->dataroot.'/temp/dataplus/';
+
+        if (!file_exists($temp_path)) {
+            mkdir($temp_path);
+        }
+
+        $temp_path .= $this->fileinfo['contextid'];
+
+        if (!file_exists($temp_path)) {
+            mkdir($temp_path);
+        }
+
+        $temp_path .= '/'.$USER->id;
+
+        if (!file_exists($temp_path)) {
+            mkdir($temp_path);
+        }
+
+        $this->temp_db_path = $temp_path.'/'.$this->get_db_file_name();
+
+        $file = $fs->get_file($this->fileinfo['contextid'],
+                              $this->fileinfo['component'],
+                              $this->fileinfo['filearea'],
+                              $this->fileinfo['itemid'],
+                              $this->fileinfo['filepath'],
+                              $this->fileinfo['filename']);
+
+        if (!empty($file)) {
+            return $file->copy_content_to($this->temp_db_path);
+        }
+        
+        return false;
+    }
 
     /**
      * returns the filename of the database
@@ -402,7 +420,7 @@ class sqlite3_db {
      */
     public function list_table_columns($table_name,$org_parameters = array()){
         $columns = $this->get_columns_table_column_list();
-           
+
         $parameters[0]->name = 'table_name';
         $parameters[0]->value = $table_name;
         $parameters[0]->operator = 'equals';

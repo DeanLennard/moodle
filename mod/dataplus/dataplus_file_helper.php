@@ -11,6 +11,7 @@ class dataplus_file_helper {
     private $fileinfo;
     private $image_fileinfo;
     private $file_fileinfo;
+    private $zip_fileinfo;
     private $temp_path;
 
     /**
@@ -27,12 +28,17 @@ class dataplus_file_helper {
         $this->fileinfo = array(
             'component' => 'mod_dataplus',
             'filearea' => 'dataplus',
-            'itemid' => $mod_inst_id,
             'contextid' => $context->id, 
             'filepath' => '/'); 
 
         $this->image_fileinfo = $this->fileinfo;
+        $this->image_fileinfo['filearea'] = 'image';
+
         $this->file_fileinfo = $this->fileinfo;
+        $this->file_fileinfo['filearea'] = 'file';
+
+        $this->zip_fileinfo = $this->fileinfo;
+        $this->zip_fileinfo['filearea'] = 'zip';
 
         $dp_temp_path = $CFG->dataroot . '/temp/dataplus/';
 
@@ -64,7 +70,7 @@ class dataplus_file_helper {
      * Deletes the temp directory when the helper is no longer needed
      */
     public function close(){
-        rmdir($this->temp_path);
+        fulldelete($this->temp_path);
     }
 
 
@@ -148,7 +154,6 @@ class dataplus_file_helper {
     public function get_image_file_path($itemid){
         $fileinfo = $this->get_image_fileinfo();
         $fileinfo['itemid'] = $itemid;
-        $fileinfo['filearea'] = 'image'; 
 
         return $this->get_file_path($fileinfo);
     }
@@ -165,7 +170,7 @@ class dataplus_file_helper {
 
 
     /**
-     * return the path for an file file
+     * return the path for a file file
      * 
      * @param int $itemid
      * @return string
@@ -173,12 +178,35 @@ class dataplus_file_helper {
     public function get_file_file_path($itemid){
         $fileinfo = $this->get_file_fileinfo();
         $fileinfo['itemid'] = $itemid;
-        $fileinfo['filearea'] = 'file'; 
 
         return $this->get_file_path($fileinfo);
     }
 
 
+    /**
+     * return the path for storing zip files for this module instance
+     * 
+     * @return string
+     */
+    public function get_zip_fileinfo(){
+        return $this->zip_fileinfo;
+    }
+
+
+    /**
+     * return the path for a zip file
+     * 
+     * @param int $itemid
+     * @return string
+     */
+    public function get_zip_file_path($itemid){
+        $fileinfo = $this->get_zip_fileinfo();
+        $fileinfo['itemid'] = $itemid;
+
+        return $this->get_file_path($fileinfo);
+    }
+
+    
     /**
      * check the temp directory for this instance exists, if not create it and return the path
      * 
@@ -350,7 +378,12 @@ class dataplus_file_helper {
      */
     private function copy_filearea_to_filesystem($from, $to, $exclude){
         $fs = get_file_storage();
-        $files = $fs->get_area_files($from['contextid'], $from['component'], $from['filearea'], $from['itemid']);
+
+        if(isset($from['itemid'])){
+            $files = $fs->get_area_files($from['contextid'], $from['component'], $from['filearea'], $from['itemid']);
+        } else {
+            $files = $fs->get_area_files($from['contextid'], $from['component'], $from['filearea']);
+        }
 
         if (empty($files)) {
             return true;
@@ -389,25 +422,18 @@ class dataplus_file_helper {
      * @return boolean
      */       
     private function copy_filesystem_to_filearea($from, $to, $exclude){
-        $hande = opendir($from);
         $fs = get_file_storage();
 
         if (is_file($from)) {
-            $filearea_path_raw = explode('/',$from);
-            $filearea_path = substr(0,strrchr($filearea_path_raw[sizeof($filearea_path_raw)-1],'/')); 
-            $filearea_path = resolve_fileinfo_filepath($filearea_path);
-
-            $fileinfo = $to;
-            $fileinfo['filepath'] = $filearea_path;
-            $fileinfo['filename'] = $file;
-
-            if (!$fs->create_file_from_pathname($fileinfo,$path)) {
+            if (!$fs->create_file_from_pathname($to,$from)) {
                 return false;
             }
 
             return true;
         }
-    
+
+        $hande = opendir($from);
+
         while (false !== ($file = readdir($hande))) {
             if ($file == '.' || $file == '..' || in_array($file,$exclude)){
                 continue;
@@ -420,7 +446,7 @@ class dataplus_file_helper {
             } else {
                 $filearea_path_raw = str_replace($from,'',$path);
                 $filearea_path = substr(0,strrchr($filearea_path_raw,'/')); 
-                $filearea_path = resolve_fileinfo_filepath($filearea_path);
+                $filearea_path = $this->resolve_fileinfo_filepath($filearea_path);
 
                 $fileinfo = $to;
                 $fileinfo['filepath'] = $filearea_path;
@@ -523,7 +549,7 @@ class dataplus_file_helper {
      * @param string $type, image or file
      * @return mixed
      */
-    public function delete_file($name,$type){
+    public function delete_file($name,$itemid,$type){
         $fs = get_file_storage();
 
         if (empty($name)) {
@@ -536,8 +562,8 @@ class dataplus_file_helper {
             $fileinfo = $this->get_file_fileinfo();
         }
 
-        $file = $fs->get_file($fileinfo->contextid, $fileinfo->component, $fileinfo->filearea, 
-        $fileinfo->itemid, $fileinfo->filepath, $name);
+        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'], $itemid,
+                    $fileinfo['filepath'], $name);
 
         if ($file) {
             return $file->delete();

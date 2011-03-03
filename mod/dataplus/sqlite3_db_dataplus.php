@@ -16,9 +16,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
     /**
      * @param string $db_id
+     * @param boolean $lock
      * @param string $path
      */
-    public function __construct($db_id, $lock = false){
+    public function __construct($db_id, $lock = false, $path = null){
         parent::__construct($db_id, $lock);
 
         //if this database did not previously exist, add the supporting columns and tables required
@@ -537,7 +538,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         $columns[2]->name = 'created_time';
         $columns[2]->label = get_string('created','dataplus');
-        $columns[2]->type = 'date';
+        $columns[2]->type = 'datetime';
         $columns[2]->group_id = '0';
         $columns[2]->hidden = false;
 
@@ -566,7 +567,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         $columns[2]->name = 'last_update_time';
         $columns[2]->label = get_string('updated','dataplus');
-        $columns[2]->type = 'date';
+        $columns[2]->type = 'datetime';
         $columns[2]->group_id = '0';
         $columns[2]->hidden = false;
 
@@ -1423,7 +1424,9 @@ class sqlite3_db_dataplus extends sqlite3_db {
             }
         }
 
-        $records = $this->query_dataplus_database();
+        $all_cols = array_merge($date_time_cols, $date_cols);
+        $all_cols[] = 'id';
+        $records = $this->query_dataplus_database($all_cols);
 
         foreach ($records as $record) {
             $parameters[0]->name = 'id';
@@ -1593,6 +1596,22 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
+     * get comment table column names
+     * @return array
+     */
+    public function get_comment_column_names(){
+        return array('id',
+                     'comment',
+                     'group_id',
+                     'creator',
+                     'creator_id',
+                     'created_time',
+                     'last_update',
+                     'last_update_id',
+                     'last_update_time');
+    }
+
+    /**
      * insert a comment to the comment table.
      *
      * @param int $record_id
@@ -1690,8 +1709,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
     public function get_comment($id, $additional_parameters = null){
         global $currentgroup;
 
-        $columns = array('id','comment','group_id','creator','creator_id','created_time',
-            'last_update','last_update_id','last_update_time');
+        $columns = $this->get_comment_column_names();
 
         $parameters = array();
         $parameters[0]->name = 'id';
@@ -1721,8 +1739,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
     public function get_record_comments($rid, $end = NULL, $start = NULL, $additional_parameters = null){
         global $currentgroup;
 
-        $columns = array('id','comment','group_id','creator','creator_id','created_time','last_update',
-            'last_update_id','last_update_time');
+        $columns = $this->get_comment_column_names();
 
         $parameters = array();
         $parameters[0]->name = 'record_id';
