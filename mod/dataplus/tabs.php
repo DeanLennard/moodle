@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -20,41 +36,56 @@ $tabs = array();
 global $groupmode, $currentgroup;
 
 if (isloggedin() && has_capability('mod/dataplus:databaseedit', $context)) {
-    $row[] = new tabobject('manage', $CFG->wwwroot.'/mod/dataplus/manage.php?id='.$cm->id, get_string('managedatabase','dataplus'));
+    $row[] = new tabobject('manage', $CFG->wwwroot.'/mod/dataplus/manage.php?id='.$cm->id,
+        get_string('managedatabase', 'dataplus'));
 }
 
 if (isloggedin() && has_capability('mod/dataplus:databaseedit', $context)) {
-    $row[] = new tabobject('templates', $CFG->wwwroot.'/mod/dataplus/templates.php?id='.$cm->id, get_string('templates','dataplus'));
+    $row[] = new tabobject('templates', $CFG->wwwroot.'/mod/dataplus/templates.php?id='.$cm->id,
+        get_string('templates', 'dataplus'));
 }
-   
+
 if (has_capability('mod/dataplus:view', $context)) {
     if ($dataplus->viewtabvisible !== '0') {
-        $row[] = new tabobject('view', $CFG->wwwroot.'/mod/dataplus/view.php?mode=view&amp;id='.$cm->id, (empty($dataplus->viewtablabel)) ? get_string('view','dataplus') : $dataplus->viewtablabel);
+        $row[] = new tabobject('view', $CFG->wwwroot.'/mod/dataplus/view.php?mode=view&amp;id='.
+            $cm->id, (empty($dataplus->viewtablabel)) ? get_string('view',
+            'dataplus') : $dataplus->viewtablabel);
     }
 
     if ($dataplus->singlerecordtabvisible !== '0') {
-        $row[] = new tabobject('single', $CFG->wwwroot.'/mod/dataplus/view.php?mode=single&amp;id='.$cm->id, (empty($dataplus->singlerecordtablabel)) ? get_string('single_record','dataplus') : $dataplus->singlerecordtablabel);
+        $row[] = new tabobject('single', $CFG->wwwroot.
+            '/mod/dataplus/view.php?mode=single&amp;id='.$cm->id,
+            (empty($dataplus->singlerecordtablabel)) ? get_string('single_record',
+            'dataplus') : $dataplus->singlerecordtablabel);
     }
 
     if ($dataplus->searchtabvisible !== '0') {
-        $row[] = new tabobject('search', $CFG->wwwroot.'/mod/dataplus/view.php?id='.$cm->id.'&amp;mode=search', (empty($dataplus->searchtablabel)) ? get_string('search','dataplus') : $dataplus->searchtablabel);
+        $row[] = new tabobject('search', $CFG->wwwroot.'/mod/dataplus/view.php?id='.$cm->id.
+            '&amp;mode=search', (empty($dataplus->searchtablabel)) ? get_string('search',
+            'dataplus') : $dataplus->searchtablabel);
     }
 }
 
-$capabiliy_check = (has_capability('mod/dataplus:databaseedit', $context) || (has_capability('mod/dataplus:dataeditown', $context)));
+$capabiliy_check = (has_capability('mod/dataplus:databaseedit', $context)
+    || (has_capability('mod/dataplus:dataeditown', $context)));
 $group_check = (($groupmode>0 && groups_is_member($currentgroup)) || empty($groupmode));
 
 if ($dataplus->addrecordtabvisible !== '0' && isloggedin() && $capabiliy_check && $group_check) {
-    $row[] = new tabobject('insert', $CFG->wwwroot.'/mod/dataplus/view.php?id='.$cm->id.'&amp;mode=insert', (empty($dataplus->addrecordtablabel)) ? get_string('addrecord','dataplus') : $dataplus->addrecordtablabel);
+    $row[] = new tabobject('insert', $CFG->wwwroot.'/mod/dataplus/view.php?id='.$cm->id.
+        '&amp;mode=insert', (empty($dataplus->addrecordtablabel)) ? get_string('addrecord',
+        'dataplus') : $dataplus->addrecordtablabel);
 }
 
 if ($dataplus->exporttabvisible !== '0' && has_capability('mod/dataplus:view', $context)) {
-    $export_label = (empty($dataplus->exporttablabel)) ? get_string('export','dataplus') : $dataplus->exporttablabel;
-    $row[] = new tabobject('export', $CFG->wwwroot.'/mod/dataplus/export.php?id='.$cm->id, $export_label);
+    $export_label = (empty($dataplus->exporttablabel)) ? get_string('export',
+        'dataplus') : $dataplus->exporttablabel;
+    $row[] = new tabobject('export', $CFG->wwwroot.'/mod/dataplus/export.php?id='.$cm->id,
+        $export_label);
 }
 
 if (isloggedin() && has_capability('mod/dataplus:databaseedit', $context)) {
-    $row[] = new tabobject('import', $CFG->wwwroot.'/mod/dataplus/import.php?id='.$cm->id, get_string('import','dataplus'));
+    $row[] = new tabobject('import', $CFG->wwwroot.'/mod/dataplus/import.php?id='.$cm->id,
+        get_string('import', 'dataplus'));
 }
 
 $tabs[] = $row;
@@ -71,7 +102,8 @@ if ($currenttab == 'templates') {
 
     foreach ($templatelist as $template) {
         $tab_name = 'template_'.$template;
-        $row[] = new tabobject($tab_name, "templates.php?id=$id&amp;mode=$template", get_string('template_' . $template, 'dataplus'));
+        $row[] = new tabobject($tab_name, "templates.php?id=$id&amp;mode=$template",
+            get_string('template_' . $template, 'dataplus'));
 
         if ($template == $mode) {
             $currenttab = $tab_name;

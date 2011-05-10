@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -13,14 +29,14 @@ class sqlite3_db {
     private $locked = false;
 
     /**
-     * Create a PDO connection to an SQLite database (which is created in the file system if does not exist). 
-     *  Sets the new_database variable if the database had to be created.
+     * Create a PDO connection to an SQLite database (which is created in the file system if
+     * does not exist). Sets the new_database variable if the database had to be created.
      *
      * @param int $db_id
      * @param boolean $lock
      * @param string $path
      */
-    public function __construct($db_id, $lock = false, $path = null){
+    public function __construct($db_id, $lock = false, $path = null) {
         global $context, $CFG, $USER;
 
         $this->fileinfo = array(
@@ -29,16 +45,17 @@ class sqlite3_db {
             'itemid' => $db_id,
             'contextid' => $context->id,
             'filepath' => '/',
-            'filename' => (string) $db_id .'.sqlite'); 
+            'filename' => (string) $db_id .'.sqlite');
 
         if ($lock) {
             if (!$this->database_lock()) {
                 global $id;
-                print_error(get_string('lockerror','dataplus'), $CFG->wwwroot.'/mod/dataplus/view.php?mode=view&amp;id='.$id);
+                print_error(get_string('lockerror', 'dataplus'), $CFG->wwwroot.
+                    '/mod/dataplus/view.php?mode=view&amp;id='.$id);
             }
         }
 
-        if(empty($path)){
+        if (empty($path)) {
             $this->create_temporary_copy();
         } else {
             $this->temp_db_path = $path;
@@ -48,15 +65,14 @@ class sqlite3_db {
 
         if (!$this->table_exists('columns')) {
             $col_columns = $this->get_columns_table_column_details();
-            $this->create_table("column",$col_columns);
+            $this->create_table("column", $col_columns);
         }
     }
-
 
     /*
      * copies the temporary database to the moodle file store and cleans up the temp directory
      */
-    public function close(){
+    public function close() {
         $this->database_unlock();
 
         $fs = get_file_storage();
@@ -73,18 +89,17 @@ class sqlite3_db {
         }
 
         if (file_exists($this->temp_db_path)) {
-            $fs->create_file_from_pathname($this->fileinfo,$this->temp_db_path);
+            $fs->create_file_from_pathname($this->fileinfo, $this->temp_db_path);
             unlink($this->temp_db_path);
         }
     }
-
 
     /**
      * Creates a temporary folder structure for the sqlite db and copies to it from the repository
      * 
      * @return boolean
      */
-    private function create_temporary_copy(){
+    private function create_temporary_copy() {
         global $CFG, $USER;
 
         $fs = get_file_storage();
@@ -119,7 +134,7 @@ class sqlite3_db {
         if (!empty($file)) {
             return $file->copy_content_to($this->temp_db_path);
         }
-        
+
         return false;
     }
 
@@ -128,10 +143,9 @@ class sqlite3_db {
      * 
      * @return string
      */
-    public function get_db_file_name(){
+    public function get_db_file_name() {
         return $this->fileinfo['filename'];
     }
-
 
     /**
      * executes a SQL statement
@@ -139,12 +153,12 @@ class sqlite3_db {
      * @param string $sql
      * @return boolean
      */
-    private function execute_sql($sql){
+    private function execute_sql($sql) {
         if (is_null($this->conn)) {
             return false;
         }
 
-        $query_check = strtolower(substr($sql,0,6));
+        $query_check = strtolower(substr($sql, 0, 6));
 
         if ($query_check == 'select' || $query_check == 'pragma') {
             $result = &$this->conn->query($sql);
@@ -165,32 +179,31 @@ class sqlite3_db {
         }
     }
 
-
     /**
-     * creates a valid name for an object - must be 20 chars or less, start with a letter and only contain
-     * alphanumeric characters based on a name given for use
+     * creates a valid name for an object - must be 20 chars or less, start with a letter and only
+     * contain alphanumeric characters based on a name given for use
      *
      * @param string $name
      * @return string
      */
-    public function create_valid_object_name($name){
-        $name = preg_replace('/(^[^a-zA-Z])/','L\1',$name);
-           
-        // this fixes an odd bug whereby naming a field 'link' was causing the app to sometimes behave as though two fields exist with the same name.
-        if(strtolower($name) == 'link'){
+    public function create_valid_object_name($name) {
+        $name = preg_replace('/(^[^a-zA-Z])/', 'L\1', $name);
+
+        // this fixes an odd bug whereby naming a field 'link' was causing the app to sometimes
+        // behave as though two fields exist with the same name.
+        if (strtolower($name) == 'link') {
             $name = 'link1234';
         }
 
-        return substr(preg_replace('/[^a-zA-Z0-9]/','',$name),0,20);
+        return substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 20);
     }
-
 
     /**
      * deletes the database from the file system
      *
      * @return boolean
      */
-    public function delete_db(){
+    public function delete_db() {
         $this->conn = null;
         $result = unlink($this->path.'/'.$this->db_file_name);
         $this->path = null;
@@ -199,13 +212,12 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
      * A text file is used to ensure the database is locked, this returns it's path
      * 
      * @return array
      */
-    private function get_lock_fileinfo(){
+    private function get_lock_fileinfo() {
         $fileinfo = $this->fileinfo;
         $fileinfo['itemid'] = 0;
         $fileinfo['filename'] = 'lock.txt';
@@ -213,19 +225,20 @@ class sqlite3_db {
         return $fileinfo;
     }
 
-
     /**
-     * If the timestamp in lock.txt is greater than 60 seconds, set a time stamp and return true to indicate
-     * the database is under control of this process.  If less than 60 seconds, then wait to until 60 seconds 
-     * passes or it is released
+     * If the timestamp in lock.txt is greater than 60 seconds, set a time stamp and return true
+     * to indicate the database is under control of this process.  If less than 60 seconds, then
+     * wait to until 60 seconds passes or it is released
      * 
      * @return boolean
      */
-    private function database_lock(){
+    private function database_lock() {
         $fileinfo = $this->get_lock_fileinfo();
         $fs = get_file_storage();
 
-        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
+        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
+            $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'],
+            $fileinfo['filename']);
 
         if ($file) {
             $date = (int) $file->get_content();
@@ -240,7 +253,7 @@ class sqlite3_db {
             $file->delete();
         }
 
-        if ($file = $fs->create_file_from_string($fileinfo,time())) {
+        if ($file = $fs->create_file_from_string($fileinfo, time())) {
             $this->locked = true;
             return true;
         } else {
@@ -248,16 +261,17 @@ class sqlite3_db {
         }
     }
 
-
     /**
      * Used for setting the timestamp in lock.txt to 0 when an operation is complete.
      * 
      * @return boolean
      */
-    private function database_unlock(){
+    private function database_unlock() {
         $fileinfo = $this->get_lock_fileinfo();
         $fs = get_file_storage();
-        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
+        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'],
+            $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'],
+            $fileinfo['filename']);
 
         if (!$file || $file->delete()) {
             $this->locked = false;
@@ -267,13 +281,13 @@ class sqlite3_db {
         }
     }
 
-
     /**
-     * returns an array of the columns in the 'column' table suitable for use in table creation or queries
+     * returns an array of the columns in the 'column' table suitable for use in table creation or
+     * queries
      *
      * @return array
      */
-    protected function get_columns_table_column_details(){
+    protected function get_columns_table_column_details() {
         $columns = array();
 
         $columns[0]->name = 'id';
@@ -306,40 +320,37 @@ class sqlite3_db {
         return $columns;
     }
 
-
     /**
      * returns a list of the names of columns in the 'column' table
      * 
      * @return array
      */
-    public function get_columns_table_column_list(){
+    public function get_columns_table_column_list() {
         $cols = $this->get_columns_table_column_details();
 
         $list = array();
 
-        foreach ($cols as $col){
+        foreach ($cols as $col) {
             $list[] = $col->name;
         }
 
         return $list;
     }
 
-
     /**
      * validates an SQLite database for use in DataPlus by checking the 'column' table exists
      * 
      * @return mixed
      */
-    public function validate_database(){
+    public function validate_database() {
         $column_exits = $this->table_exists('column');
 
         if ($column_exits) {
             return true;
         }
 
-        return get_string('validate_table_column','dataplus');
+        return get_string('validate_table_column', 'dataplus');
     }
-
 
     /**
      * Handles any escapes, etc, needed in values.
@@ -347,12 +358,11 @@ class sqlite3_db {
      * @param string $value
      * @return string
      */
-    public function prepare_value($value){
-        $value = str_replace("'","''",$value);
+    public function prepare_value($value) {
+        $value = str_replace("'", "''", $value);
 
         return $value;
     }
-
 
     /**
      * generate the SQL statement to create a table and execute it
@@ -361,7 +371,7 @@ class sqlite3_db {
      * @param array $columns
      * @return boolean
      */
-    public function create_table($table_name, $columns){
+    public function create_table($table_name, $columns) {
         $columns_sql = '';
 
         $table_name = $this->create_valid_object_name($table_name);
@@ -394,7 +404,6 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
      * generate an SQL statement to drop a table and execute it
      *
@@ -408,30 +417,28 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
-     * return an array with all the details of the columns from a table.  Parameters can be specified to
-     * restrict the columns returned.  These two functions exist because autoincrement info is not included
-     * in PRAGMA table_info in SQLite
+     * return an array with all the details of the columns from a table.  Parameters can be
+     * specified to restrict the columns returned.  These two functions exist because autoincrement
+     * info is not included in PRAGMA table_info in SQLite
      *
      * @param string $table_name
      * @param array $org_parameters
      * @return array
      */
-    public function list_table_columns($table_name,$org_parameters = array()){
+    public function list_table_columns($table_name, $org_parameters = array()) {
         $columns = $this->get_columns_table_column_list();
 
         $parameters[0]->name = 'table_name';
         $parameters[0]->value = $table_name;
         $parameters[0]->operator = 'equals';
 
-        if (sizeof($org_parameters)>0) {
+        if (count($org_parameters) > 0) {
             $parameters[0]->sub = $org_parameters;
         }
 
-        return $this->query_database('column',$columns,$parameters);
+        return $this->query_database('column', $columns, $parameters);
     }
-
 
     /**
      * return just the names of the columns in a table
@@ -439,29 +446,27 @@ class sqlite3_db {
      * @param string $table_name
      * @return array
      */
-    public function list_table_columns_names($table_name){
+    public function list_table_columns_names($table_name) {
         $columns = $this->list_table_columns($table_name);
 
-        foreach($columns as $column){
+        foreach ($columns as $column) {
             $names[] = $column->name;
         }
 
         return $names;
     }
 
+    /**
+     * return an array with all the output of table_info for a table.
+     *
+     * @param string $table_name
+     * @return array
+     */
+    public function pragma_table($table_name) {
+        $records = $this->execute_sql("PRAGMA table_info({$table_name});");
 
-      /**
-       * return an array with all the output of table_info for a table.
-       *
-       * @param string $table_name
-       * @return array
-       */
-       public function pragma_table($table_name){
-           $records = $this->execute_sql("PRAGMA table_info({$table_name});");
-
-           return $this->convert_pdo_to_array($records);
-       }
-
+        return $this->convert_pdo_to_array($records);
+    }
 
     /**
      * get the details of one of the fields associated with a table column from the 'column' table
@@ -471,20 +476,19 @@ class sqlite3_db {
      * @param string $field
      * @return mixed
      */
-    public function get_column_field($table_name,$id,$field){
+    public function get_column_field($table_name, $id, $field) {
         $parameters[0]->name = 'id';
         $parameters[0]->value = $id;
         $parameters[0]->operator = 'equals';
 
-        $col = $this->list_table_columns($table_name,$parameters);
+        $col = $this->list_table_columns($table_name, $parameters);
 
-        if (sizeof($col) == 0) {
+        if (count($col) == 0) {
             return false;
         }
 
         return $col[0]->$field;
     }
-
 
     /**
      * get the name of a table column, as stored in the 'column' table, by it's id
@@ -493,10 +497,9 @@ class sqlite3_db {
      * @param string/int $id
      * @return object
      */
-    public function get_column_field_name($table_name,$id){
-        return $this->get_column_field($table_name,$id,'name');
+    public function get_column_field_name($table_name, $id) {
+        return $this->get_column_field($table_name, $id, 'name');
     }
-
 
     /**
      * get the details of an individual column, as stored in the 'column' table, by it's id
@@ -504,16 +507,15 @@ class sqlite3_db {
      * @param string/int $id
      * @return object
      */
-    public function get_column_details($id){
+    public function get_column_details($id) {
         $columns = $this->get_columns_table_column_list();
         $parameters = array();
         $parameters[0]->name = 'id';
         $parameters[0]->value = $id;
-        $result = $this->query_database('column',$columns,$parameters);
+        $result = $this->query_database('column', $columns, $parameters);
 
         return $result[0];
     }
-
 
     /**
      * check a column exists in table, according to the information stored in the 'column' table
@@ -534,7 +536,6 @@ class sqlite3_db {
         return false;
     }
 
-
     /**
      * add a column to a table and supporting data to the 'column' table
      *
@@ -542,9 +543,9 @@ class sqlite3_db {
      * @param string $type
      * @return boolean
      */
-    public function add_column($column_label, $type){
+    public function add_column($column_label, $type) {
         $column_name = $this->create_valid_object_name($column_label);
-        $result = $this->add_column_query("content",$column_name, $type);
+        $result = $this->add_column_query("content", $column_name, $type);
 
         if ($result === true) {
             $fields = array();
@@ -561,12 +562,11 @@ class sqlite3_db {
             $columns[3]->name = 'table_name';
             $columns[3]->value = 'content';
 
-            $result = $this->insert_record("column",$columns);
+            $result = $this->insert_record("column", $columns);
         }
 
         return $column_name;
     }
-
 
     /**
      * generate and execute the SQL statement for adding a column
@@ -579,7 +579,8 @@ class sqlite3_db {
      * @param boolean $not_null
      * @return result
      */
-    protected function add_column_query($table_name, $column_name, $column_type, $autoincrement = false, $primary_key = false, $not_null = false){
+    protected function add_column_query($table_name, $column_name, $column_type,
+        $autoincrement = false, $primary_key = false, $not_null = false) {
         $column_name = $this->create_valid_object_name($column_name);
 
         $column_exists = $this->check_column_exists($table_name, $column_name);
@@ -600,12 +601,13 @@ class sqlite3_db {
             $primary_key = 'NOT NULL';
         }
 
-        $sql = "ALTER TABLE \"{$table_name}\" ADD COLUMN \"{$column_name}\" {$column_type} {$primary_key} {$autoincrement} $not_null";
+        $sql = "ALTER TABLE \"{$table_name}\"
+                ADD COLUMN \"{$column_name}\"
+                {$column_type} {$primary_key} {$autoincrement} $not_null";
         $result = $this->execute_sql($sql);
 
         return $result;
     }
-
 
     /**
      * delete a column from a table
@@ -614,7 +616,7 @@ class sqlite3_db {
      * @param int $column_id
      * @return boolean
      */
-    public function delete_column($table_name,$column_id){
+    public function delete_column($table_name, $column_id) {
         $result = $this->delete_column_query($table_name, $column_id);
 
         if ($result) {
@@ -624,7 +626,6 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
      * delete the record for a column from the 'column' table
      *
@@ -632,7 +633,7 @@ class sqlite3_db {
      * @param int $id
      * @return boolean
      */
-    protected function delete_column_record($table_name, $id){
+    protected function delete_column_record($table_name, $id) {
         $delete_params = array();
 
         $delete_params[0]->name = 'id';
@@ -643,19 +644,18 @@ class sqlite3_db {
         $delete_params[1]->value = $table_name;
         $delete_params[1]->operator = 'equals';
 
-        return $this->delete_record('column',$delete_params);
+        return $this->delete_record('column', $delete_params);
     }
 
-
     /**
-     * call all the functions for generating and executing SQL for deleting columns (note - there is no
-     * easy way to delete a column in SQLite)
+     * call all the functions for generating and executing SQL for deleting columns (note - there
+     * is no easy way to delete a column in SQLite)
      *
      * @param string $table_name
      * @param int $column_id
      * @return boolean
      */
-    protected function delete_column_query($table_name, $column_id){
+    protected function delete_column_query($table_name, $column_id) {
         $columns = $this->list_table_columns($table_name);
         $i = 0;
 
@@ -668,7 +668,7 @@ class sqlite3_db {
             $i++;
         }
 
-        $temp_name = "deletebackup" . mt_rand(1,1000000);
+        $temp_name = "deletebackup" . mt_rand(1, 1000000);
 
         //TODO - review this coce
         $results = array();
@@ -679,7 +679,6 @@ class sqlite3_db {
         $results[] = $this->copy_table_data($temp_name, $table_name, $columns);
         $results[] = $this->drop_table($temp_name);
 
-
         foreach ($results as $result) {
             if ($result !== true ) {
                 return $result;
@@ -689,7 +688,6 @@ class sqlite3_db {
         return true;
     }
 
-
     /**
      * alter a table column, including altering the record in the 'column' table
      *
@@ -697,7 +695,7 @@ class sqlite3_db {
      * @param obj $column_details
      * @return mixed
      */
-    public function alter_column($table_name,$column_details){
+    public function alter_column($table_name, $column_details) {
         $update = array();
         $i = 0;
         $stored_column = $this->get_column_details($column_details->id);
@@ -724,13 +722,13 @@ class sqlite3_db {
             $update[$i]->value = $column_details->type;
         }
 
-        $result = $this->alter_column_query($table_name,$column_details);
+        $result = $this->alter_column_query($table_name, $column_details);
 
         if ($result === "COLUMNEXISTS"  || $result === false) {
             return $result;
         }
 
-        if (sizeof($update)==0) {
+        if (count($update) == 0) {
             return 'NOTHINGTODO';
         }
 
@@ -743,11 +741,10 @@ class sqlite3_db {
         $parameters[1]->value  = 'content';
         $parameters[1]->operator = 'equals';
 
-        $result = $this->update_record('column',$update,$parameters);
+        $result = $this->update_record('column', $update, $parameters);
 
         return $result;
     }
-
 
     /**
      * call all the functions for generating and executing SQL statements for altering a column 
@@ -757,7 +754,7 @@ class sqlite3_db {
      * @param string $column_details
      * @return boolean
      */
-    protected function alter_column_query($table_name, $column_details){
+    protected function alter_column_query($table_name, $column_details) {
         $new_column_exists = $this->check_column_exists($table_name, $column_details->new_name);
 
         if ($new_column_exists) {
@@ -784,7 +781,7 @@ class sqlite3_db {
             $i++;
         }
 
-        $temp_name = 'renamebackup' . mt_rand(1,1000000);
+        $temp_name = 'renamebackup' . mt_rand(1, 1000000);
 
         $results = array();
         $results[] = $this->create_table($temp_name, $old_columns);
@@ -803,7 +800,6 @@ class sqlite3_db {
         return true;
     }
 
-
     /**
      * insert a record to a table
      *
@@ -811,7 +807,7 @@ class sqlite3_db {
      * @param array $columns
      * @return boolean
      */
-    public function insert_record($table_name,$columns){
+    public function insert_record($table_name, $columns) {
         $columns_sql = '';
         $values_sql = '';
 
@@ -836,7 +832,6 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
      * copy all the data in all the specified columns from one table to another
      *
@@ -845,7 +840,7 @@ class sqlite3_db {
      * @param array $columns
      * @return boolean
      */
-    protected function copy_table_data($source_table, $destination_table, $columns){
+    protected function copy_table_data($source_table, $destination_table, $columns) {
         $columns_sql = '';
 
         foreach ($columns as $column) {
@@ -856,19 +851,20 @@ class sqlite3_db {
             $columns_sql .= "\"{$column->name}\"";
         }
 
-        $sql = "INSERT INTO \"{$destination_table}\" SELECT {$columns_sql} FROM \"{$source_table}\";";
+        $sql = "INSERT INTO \"{$destination_table}\" SELECT {$columns_sql}
+            FROM \"{$source_table}\";";
         $result = $this->execute_sql($sql);
 
         return $result;
     }
 
-
     /**
-     * generates basic 'where' clauses for use in queries.  Subs can be used for parts to be contained in brackets
+     * generates basic 'where' clauses for use in queries.  Subs can be used for parts to be
+     * contained in brackets
      *
      * @param array $parameters
      */
-    protected function get_where_clause($parameters){
+    protected function get_where_clause($parameters) {
         $parameters_sql = '';
 
         foreach ($parameters as $parameter) {
@@ -892,13 +888,13 @@ class sqlite3_db {
 
             if (!isset($parameter->operator) || $parameter->operator == 'contains') {
                 $parameters_sql .= "\"{$name}\" LIKE '%{$value}%'";
-            } else if($parameter->operator == 'equals'){
+            } else if ($parameter->operator == 'equals') {
                 $parameters_sql .= "\"{$name}\" = '{$value}'";
-            } else if($parameter->operator == 'notequal'){
+            } else if ($parameter->operator == 'notequal') {
                 $parameters_sql .= "\"{$name}\" != '{$value}'";
-            } else if($parameter->operator == 'lessthan'){
+            } else if ($parameter->operator == 'lessthan') {
                 $parameters_sql .= "\"{$name}\" < {$value}";
-            } else if($parameter->operator == 'greaterthan'){
+            } else if ($parameter->operator == 'greaterthan') {
                 $parameters_sql .= "\"{$name}\" > {$value}";
             }
         }
@@ -913,7 +909,7 @@ class sqlite3_db {
      * @param array $parameters
      * @return boolean
      */
-    public function delete_record($table_name,$parameters = null){
+    public function delete_record($table_name, $parameters = null) {
         $sql = "DELETE FROM \"{$table_name}\"";
 
         if (!is_null($parameters)) {
@@ -926,7 +922,6 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
      * update record/s.  If no parameters are set, all records will be updated
      *
@@ -935,7 +930,7 @@ class sqlite3_db {
      * @param array $parameters
      * @return boolean
      */
-    public function update_record($table_name,$columns,$parameters = array()){
+    public function update_record($table_name, $columns, $parameters = array()) {
         $columns_sql = '';
 
         foreach ($columns as $column) {
@@ -949,7 +944,7 @@ class sqlite3_db {
 
         $sql = "UPDATE \"{$table_name}\" SET {$columns_sql}";
         $parameters_sql = $this->get_where_clause($parameters);
-           
+
         if (!empty($parameters_sql)) {
             $sql .= " WHERE {$parameters_sql}";
         }
@@ -959,19 +954,18 @@ class sqlite3_db {
         return $result;
     }
 
-
     /**
      * Converts a PDO object to an array
      * 
      * @param object $pdo
      * @return array
      */
-    private function convert_pdo_to_array($pdo){
+    private function convert_pdo_to_array($pdo) {
         $details = array();
         $i = 0;
 
         while ($record = $pdo->fetch(PDO::FETCH_ASSOC)) {
-            foreach ($record as $name=>$value) {
+            foreach ($record as $name => $value) {
                 $details[$i]->$name = $value;
             }
 
@@ -981,9 +975,9 @@ class sqlite3_db {
         return $details;
     }
 
-    
     /**
-     * query the a table in the database.  If no parameters or limit is set, all records are returned.
+     * query the a table in the database.  If no parameters or limit is set, all records are
+     * returned.
      *
      * @param string $table_name
      * @param array $columns
@@ -992,7 +986,8 @@ class sqlite3_db {
      * @param array $order
      * @return array
      */
-    public function query_database($table_name,$columns,$parameters = null, $limit = null, $order = null){
+    public function query_database($table_name, $columns, $parameters = null, $limit = null,
+        $order = null) {
         $columns_sql = '';
 
         foreach ($columns as $column) {
@@ -1023,7 +1018,7 @@ class sqlite3_db {
 
                 $i++;
 
-                if ($i<sizeof($order)) {
+                if ($i < count($order)) {
                     $sql .= ',';
                 }
             }
@@ -1042,9 +1037,9 @@ class sqlite3_db {
         return $this->convert_pdo_to_array($records);
     }
 
-
     /**
-     * return a single result to a query.  If the query returns more than one result, the first is returned.
+     * return a single result to a query.  If the query returns more than one result, the first
+     * is returned.
      *
      * @param string $table_name
      * @param array $columns
@@ -1052,11 +1047,12 @@ class sqlite3_db {
      * @param array $order
      * @return mixed
      */
-    public function query_database_single($table_name,$columns,$parameters = null, $order = null){
+    public function query_database_single($table_name, $columns, $parameters = null,
+        $order = null) {
         $limit['start'] = 0;
         $limit['number'] = 1;
 
-        $results = $this->query_database($table_name,$columns,$parameters,$limit,$order);
+        $results = $this->query_database($table_name, $columns, $parameters, $limit, $order);
 
         if (empty($results)) {
             return false;
@@ -1065,7 +1061,6 @@ class sqlite3_db {
         return $results[0];
     }
 
-
     /**
      * count the number of results in a database query
      *
@@ -1073,7 +1068,7 @@ class sqlite3_db {
      * @param array $parameters
      * @return mixed
      */
-    public function count_database_query($table_name,$parameters = null){
+    public function count_database_query($table_name, $parameters = null) {
         $sql = "SELECT COUNT(*) AS count FROM \"{$table_name}\"";
 
         if (!empty($parameters)) {
@@ -1092,19 +1087,18 @@ class sqlite3_db {
         }
     }
 
-
     /**
      * check a table with a given name exists
      *
      * @param string $table_name
      * @return boolean
      */
-    public function table_exists($table_name){
+    public function table_exists($table_name) {
         $parameters[0]->name  = 'tbl_name';
         $parameters[0]->value = $table_name;
         $parameters[0]->operator = 'equals';
 
-        $count = $this->count_database_query('sqlite_master',$parameters);
+        $count = $this->count_database_query('sqlite_master', $parameters);
 
         if ($count == 1) {
             return true;
@@ -1113,14 +1107,13 @@ class sqlite3_db {
         return false;
     }
 
-
     /**
      * get columns information for a table
      *
      * @param string $table_name
      * @return mixed
      */
-    protected function get_table_info($table_name){
+    protected function get_table_info($table_name) {
         $sql = "PRAGMA table_info('{$table_name}')";
         $info = $this->execute_sql($sql);
 
@@ -1132,7 +1125,7 @@ class sqlite3_db {
         $i = 0;
 
         while ($record = $info->fetch(PDO::FETCH_ASSOC)) {
-            foreach ($record as $name=>$value) {
+            foreach ($record as $name => $value) {
                 $details[$i]->$name = $value;
             }
 
@@ -1142,14 +1135,13 @@ class sqlite3_db {
         return $details;
     }
 
-
     /**
      * get information on a particular column from a table
      *
      * @param string $table_name
      * @param string $col_name
      */
-    protected function get_column_info($table_name, $col_name){
+    protected function get_column_info($table_name, $col_name) {
         $cols = $this->get_table_info($table_name);
 
         foreach ($cols as $col) {

@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -19,7 +35,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param boolean $lock
      * @param string $path
      */
-    public function __construct($db_id, $lock = false, $path = null){
+    public function __construct($db_id, $lock = false, $path = null) {
         parent::__construct($db_id, $lock);
 
         //if this database did not previously exist, add the supporting columns and tables required
@@ -42,17 +58,17 @@ class sqlite3_db_dataplus extends sqlite3_db {
      *
      * @return float
      */
-    public function get_version(){
+    public function get_version() {
         return $this->version;
     }
 
 
     /**
-     *  returns the information required for a standard primary key
+     * returns the information required for a standard primary key
      *
-     *  @return array
+     * @return array
      */
-    private function define_basic_columns(){
+    private function define_basic_columns() {
         $columns = array();
 
         $columns[0]->name = 'id';
@@ -60,7 +76,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[0]->primary_key = true;
         $columns[0]->autoincrement = true;
         $columns[0]->notnull = true;
-        $columns[0]->label = get_string('id','dataplus');
+        $columns[0]->label = get_string('id', 'dataplus');
         $columns[0]->group_id = '0';
         $columns[0]->hidden = false;
 
@@ -70,16 +86,16 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
     /**
      * umbrella for setting up all the tables and columns needed for a DataPlus database.
-     * These tables record information a content table for storing user data with auto generated supporting 
-     * fields(creator, last user and group info), a table for recording information in the columns in other 
-     * tables (columns) - this is necessary due to shortcomings in the support for pragma is SQLite, and a 
-     * templates table for user templates
+     * These tables record information a content table for storing user data with auto generated
+     * supporting fields(creator, last user and group info), a table for recording information in
+     * the columns in other tables (columns) - this is necessary due to shortcomings in the support
+     * for pragma is SQLite, and a templates table for user templates
      *
      */
-    private function setup_tables(){
+    private function setup_tables() {
         $supporting_columns = $this->detail_content_table_supporting_columns();
 
-        $this->create_table("content",$supporting_columns);
+        $this->create_table("content", $supporting_columns);
 
         $column = array();
 
@@ -104,7 +120,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $column[6]->name = 'table_name';
         $column[6]->value = 'content';
 
-        $this->insert_record("column",$column);
+        $this->insert_record("column", $column);
 
         foreach ($supporting_columns as $supporting) {
             $column = array();
@@ -119,7 +135,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $column[$i]->name = 'table_name';
             $column[$i]->value = 'content';
 
-            $this->insert_record("column",$column);
+            $this->insert_record("column", $column);
         }
 
         $this->setup_templates_table();
@@ -135,7 +151,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return string
      */
-    function get_file_db_version(){
+    public function get_file_db_version() {
         return $this->get_supporting_setting('version');
     }
 
@@ -145,27 +161,28 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @ return boolean
      */
-    public function set_file_db_version(){
-        return $this->set_supporting_setting('version', $this->get_version(), $this->get_file_db_version());
+    public function set_file_db_version() {
+        return $this->set_supporting_setting('version', $this->get_version(),
+            $this->get_file_db_version());
     }
 
 
-     /**
+    /**
      * Get the db domain currently associated with the db file
      * 
      * @return string
      */
-    function get_file_db_domain(){
+    public function get_file_db_domain() {
         return $this->get_supporting_setting('domain');
     }
 
 
     /*
      * Sets the domain under which the db was created.
-     * 
+     *
      * @return boolean
      */
-    public function set_file_db_domain(){
+    public function set_file_db_domain() {
         global $CFG;
 
         return $this->set_supporting_setting('domain', $CFG->wwwroot, $this->get_file_db_domain());
@@ -178,7 +195,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string name
      * @return mixes
      */
-    function get_supporting_setting($name){
+    public function get_supporting_setting($name) {
         $columns = array('val');
 
         $parameters = array();
@@ -186,7 +203,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $parameters[0]->value = $name;
         $parameters[0]->operator = 'equals';
 
-        $result = $this->query_database_single("supportinginfo",$columns,$parameters);
+        $result = $this->query_database_single("supportinginfo", $columns, $parameters);
 
         if (!$result) {
             return $result;
@@ -203,7 +220,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string value
      * @return boolean
      */
-    function set_supporting_setting($name, $value, $exists){
+    public function set_supporting_setting($name, $value, $exists) {
         $columns[0]->name = 'variable';
         $columns[0]->value = $name;
 
@@ -211,14 +228,14 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[1]->value = $value;
 
         if (!$exists) {
-           return $this->insert_record("supportinginfo",$columns);
+            return $this->insert_record("supportinginfo", $columns);
         }
 
         $parameters[0]->name = 'variable';
         $parameters[0]->value = $name;
         $parameters[0]->operator = 'equals';
 
-        return $this->update_record("supportinginfo",$columns,$parameters); 
+        return $this->update_record("supportinginfo", $columns, $parameters);
     }
 
 
@@ -227,7 +244,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    protected function setup_templates_table(){
+    protected function setup_templates_table() {
         $columns = $this->define_basic_columns();
 
         $columns[1]->name = 'css';
@@ -257,7 +274,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[9]->name = 'group_id';
         $columns[9]->type = 'integer';
 
-        return $this->create_table("templates",$columns);
+        return $this->create_table("templates", $columns);
     }
 
 
@@ -266,7 +283,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    protected function setup_supporting_table(){
+    protected function setup_supporting_table() {
         $columns = $this->define_basic_columns();
 
         $columns[1]->name = 'variable';
@@ -275,7 +292,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[2]->name = 'val';
         $columns[2]->type = 'text';
 
-        return $this->create_table("supportinginfo",$columns);
+        return $this->create_table("supportinginfo", $columns);
     }
 
 
@@ -284,7 +301,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    protected function setup_comments_table(){
+    protected function setup_comments_table() {
         $columns = $this->define_basic_columns();
 
         $columns[1]->name = 'record_id';
@@ -296,9 +313,9 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[3]->name = 'group_id';
         $columns[3]->type = 'integer';
 
-        $columns = array_merge($columns,$this->define_editor_columns());
+        $columns = array_merge($columns, $this->define_editor_columns());
 
-        return $this->create_table("comments",$columns);
+        return $this->create_table("comments", $columns);
     }
 
 
@@ -307,7 +324,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return mixed
      */
-    private function needs_upgrade(){
+    private function needs_upgrade() {
         if (!$this->table_exists("supportinginfo")) {
             return 1.01;
         }
@@ -340,10 +357,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    private function upgrade($db_version){
+    private function upgrade($db_version) {
         if ($db_version<1.1) {
             $columns[0]->name = 'label';
-            $columns[0]->value = get_string('id','dataplus');
+            $columns[0]->value = get_string('id', 'dataplus');
 
             $columns[1]->name = 'group_id';
             $columns[1]->value = '0';
@@ -352,7 +369,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[0]->value = 'id';
             $parameters[0]->operator = 'equals';
 
-            $result = $this->update_record("column",$columns,$parameters);
+            $result = $this->update_record("column", $columns, $parameters);
 
             if (!$result) {
                 return $result;
@@ -364,13 +381,13 @@ class sqlite3_db_dataplus extends sqlite3_db {
                 return $result;
             }
 
-            $result = $this->add_column_query("templates","css","text");
+            $result = $this->add_column_query("templates", "css", "text");
 
             if (!$result) {
                 return $result;
             }
 
-            $result =  $this->add_column_query("templates","js","text");
+            $result =  $this->add_column_query("templates", "js", "text");
 
             if (!$result) {
                 return $result;
@@ -383,7 +400,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[0]->value = 'view-template';
             $parameters[0]->operator = 'equals';
 
-            $result = $this->update_record("templates",$columns,$parameters);
+            $result = $this->update_record("templates", $columns, $parameters);
 
             if (!$result) {
                 return $result;
@@ -392,7 +409,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         if ($db_version<1.11) {
             $result = $this->set_file_db_domain();
-               
+
             if (!$result) {
                 return $result;
             }
@@ -407,7 +424,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         }
 
         if ($db_version<1.201) {
-            $result = $this->add_column_query("templates","comments","text");
+            $result = $this->add_column_query("templates", "comments", "text");
 
             if (!$result) {
                 return $result;
@@ -416,16 +433,16 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         if ($db_version<1.205) {
             //fix the content table if it has no primary key
-            $column = $this->get_column_info('content','id');
+            $column = $this->get_column_info('content', 'id');
 
             if ($column->pk === "0") {
                 $parameters[0]->name = 'name';
                 $parameters[0]->value = 'id';
                 $parameters[0]->operator = 'equals';
-                
-                $id_col = $this->list_table_columns('content',$parameters);
+
+                $id_col = $this->list_table_columns('content', $parameters);
                 $id_col = $id_col[0];
-               
+
                 $id_col->primary_key = "1";
                 $id_col->autoincrement = "1";
                 $id_col->not_null = "1";
@@ -443,16 +460,17 @@ class sqlite3_db_dataplus extends sqlite3_db {
         }
 
         /*
-         * previously the following db versions were 1.202 and 1.203, but there appear to have been instances
-         * of the upgrade running without the sortorder column being added, at least on the tt build.
-         * Therefore we seek to upgrade to 1.204 with a check to see if the sortorder cols already there.
+         * previously the following db versions were 1.202 and 1.203, but there appear to have
+         * been instances of the upgrade running without the sortorder column being added, at least
+         * on the tt build.
+         * Therefore we seek to upgrade to 1.204 with a check to see if the sortorder cols already
+         * there.
          */
         if ($db_version<1.207) {
-            if (parent::check_column_exists("templates","sortorder")) {
+            if (parent::check_column_exists("templates", "sortorder")) {
                 //the sortorder column is already there so don't do antything
-            }
-            else {
-                $result = $this->add_column_query("templates","sortorder","text");
+            } else {
+                $result = $this->add_column_query("templates", "sortorder", "text");
 
                 if (!$result) {
                     return $result;
@@ -465,15 +483,15 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
-     * Adds some additional supporting columns for supporting groups and form field display (also 
+     * Adds some additional supporting columns for supporting groups and form field display (also
      * a field for hiding fields, only supported in specific contexts)
      * 
      * @param array
      */
-    protected function get_columns_table_column_details(){
+    protected function get_columns_table_column_details() {
         $columns = parent::get_columns_table_column_details();
 
-        $i = sizeof($columns);
+        $i = count($columns);
 
         $columns[$i]->name = 'form_field_type';
         $columns[$i]->type = 'text';
@@ -498,12 +516,12 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
-     * details of the columns in the content table that contain information on the record creator, last update
-     * and group
+     * details of the columns in the content table that contain information on the record creator,
+     * last update and group
      * 
      * @return array
      */
-    public function detail_content_table_supporting_columns(){
+    public function detail_content_table_supporting_columns() {
         $basic_columns = $this->define_basic_columns();
 
         $editor_columns = $this->define_editor_columns();
@@ -523,21 +541,21 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return array
      */
-    public function define_creator_columns(){
+    public function define_creator_columns() {
         $columns[0]->name = 'creator';
-        $columns[0]->label = get_string('creator','dataplus');
+        $columns[0]->label = get_string('creator', 'dataplus');
         $columns[0]->type = 'text';
         $columns[0]->group_id = '0';
         $columns[0]->hidden = false;
 
         $columns[1]->name = 'creator_id';
-        $columns[1]->label = get_string('creatorid','dataplus');
+        $columns[1]->label = get_string('creatorid', 'dataplus');
         $columns[1]->type = 'text';
         $columns[1]->group_id = '0';
         $columns[1]->hidden = true;
 
         $columns[2]->name = 'created_time';
-        $columns[2]->label = get_string('created','dataplus');
+        $columns[2]->label = get_string('created', 'dataplus');
         $columns[2]->type = 'datetime';
         $columns[2]->group_id = '0';
         $columns[2]->hidden = false;
@@ -551,22 +569,22 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return array
      */
-    public function define_updater_columns(){
-        
+    public function define_updater_columns() {
+
         $columns[0]->name = 'last_update';
-        $columns[0]->label = get_string('updater','dataplus');
+        $columns[0]->label = get_string('updater', 'dataplus');
         $columns[0]->type = 'text';
         $columns[0]->group_id = '0';
         $columns[0]->hidden = false;
 
         $columns[1]->name = 'last_update_id';
-        $columns[1]->label = get_string('updaterid','dataplus');
+        $columns[1]->label = get_string('updaterid', 'dataplus');
         $columns[1]->type = 'text';
         $columns[1]->group_id = '0';
         $columns[1]->hidden = true;
 
         $columns[2]->name = 'last_update_time';
-        $columns[2]->label = get_string('updated','dataplus');
+        $columns[2]->label = get_string('updated', 'dataplus');
         $columns[2]->type = 'datetime';
         $columns[2]->group_id = '0';
         $columns[2]->hidden = false;
@@ -574,14 +592,14 @@ class sqlite3_db_dataplus extends sqlite3_db {
         return $columns;
     }
 
-    
+
     /**
      * Returns details of editor and updater columns
      * 
      * @return array
      */
-    public function define_editor_columns(){
-        return array_merge($this->define_creator_columns(),$this->define_updater_columns());
+    public function define_editor_columns() {
+        return array_merge($this->define_creator_columns(), $this->define_updater_columns());
     }
 
 
@@ -590,7 +608,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return array
      */
-    public function get_field_types(){
+    public function get_field_types() {
         return array(
             'smalltext' => get_string('field_smalltext', 'dataplus'),
             'longtext' => get_string('field_longtext', 'dataplus'),
@@ -612,7 +630,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $field_type
      * @return mixed
      */
-    public function get_field_type_description($field_type){
+    public function get_field_type_description($field_type) {
         $types = $this->get_field_types();
 
         if (isset($types[$field_type])) {
@@ -628,7 +646,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return array
      */
-    public function get_field_data_types(){
+    public function get_field_data_types() {
         return array(
             'smalltext' => 'text',
             'longtext' => 'text',
@@ -650,8 +668,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      *
      * @param string $field_type
      * @return mixed
-    */
-    public function get_field_data_type($field_type){
+     */
+    public function get_field_data_type($field_type) {
         $types = $this->get_field_data_types();
 
         if (isset($types[$field_type])) {
@@ -663,22 +681,23 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
-     * this is added to the end of names of additional fields used to store supporting information (image alt tags,
-     * url descriptors, etc).
+     * this is added to the end of names of additional fields used to store supporting information
+     * (image alt tags, url descriptors, etc).
      * 
      * @return string
      */
-    public function get_supporting_suffix(){
+    public function get_supporting_suffix() {
         return '000SUPP';
     }
 
 
     /**
-     * returns an array of the form field types that have  addition fields for supporting information
+     * returns an array of the form field types that have  addition fields for supporting
+     * information
      *
      * @return array
      */
-    public function get_combi_fields(){
+    public function get_combi_fields() {
         return array(
             'url'=>array('desc'),
             'image'=>array('alt'));
@@ -690,11 +709,11 @@ class sqlite3_db_dataplus extends sqlite3_db {
      *
      * @return array
      */
-    public function get_combi_fields_types(){
+    public function get_combi_fields_types() {
         $fields = $this->get_combi_fields();
         $types = array();
 
-        foreach ($fields as $type=>$val) {
+        foreach ($fields as $type => $val) {
             $types[] = $type;
         }
 
@@ -708,7 +727,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param boolean $include_hidden
      * @return array
      */
-    public function list_content_table_supporting_columns($include_hidden = false){
+    public function list_content_table_supporting_columns($include_hidden = false) {
         $cols = $this->detail_content_table_supporting_columns();
         $list = array();
 
@@ -725,25 +744,27 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
-     * list the columns in the content table.  $parameters can be specified for the query.  Supporting fields
-     * can be included/ommitted
+     * list the columns in the content table. $parameters can be specified for the query.
+     * Supporting fields can be included/ommitted
      *
      * @param boolean $include_supporting
      * @param array $parameters
      * @return array
      */
-    public function list_dataplus_table_columns($include_supporting = false, $parameters = array()){
-        $columns = $this->list_table_columns('content',$parameters);
-        $end = sizeof($columns);
+    public function list_dataplus_table_columns($include_supporting = false,
+        $parameters = array()) {
+        $columns = $this->list_table_columns('content', $parameters);
+        $end = count($columns);
         $supporting_cols = $this->list_content_table_supporting_columns(true);
 
         if (!$include_supporting) {
             $supp_suffix_len = 0 - strlen($this->get_supporting_suffix());
 
-            for ($i=0; $i<$end; $i++) {
-                $suffix_match = (substr($columns[$i]->name,$supp_suffix_len) == $this->get_supporting_suffix());
+            for ($i = 0; $i < $end; $i++) {
+                $suffix_match = (substr($columns[$i]->name,
+                    $supp_suffix_len) == $this->get_supporting_suffix());
 
-                if (in_array($columns[$i]->name,$supporting_cols) || $suffix_match) {
+                if (in_array($columns[$i]->name, $supporting_cols) || $suffix_match) {
                     unset($columns[$i]);
                 }
             }
@@ -754,14 +775,15 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
-     * list the columns in the content table as an array.  $parameters can be specified for the query.  Supporting fields
-     * can be included/ommitted
+     * list the columns in the content table as an array. $parameters can be specified for the
+     * query. Supporting fields can be included/ommitted
      *
      * @param boolean $include_supporting
      * @param array $parameters
      * @return unknown
      */
-    public function list_dataplus_table_columns_array($include_supporting = false, $parameters = array()){
+    public function list_dataplus_table_columns_array($include_supporting = false,
+        $parameters = array()) {
         $columns = $this->list_dataplus_table_columns($include_supporting, $parameters);
         $output = array();
 
@@ -783,7 +805,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param boolean $include_supporting
      * @return array
      */
-    public function list_table_columns_names($include_supporting = false){
+    public function list_table_columns_names($include_supporting = false) {
         $columns = $this->list_dataplus_table_columns($include_supporting);
         $names = array();
 
@@ -801,7 +823,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param boolean $include_supporting
      * @return array
      */
-    public function list_table_datetime_column_names(){
+    public function list_table_datetime_column_names() {
         $columns = $this->list_dataplus_table_columns();
         $names = array();
 
@@ -821,8 +843,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param int $id
      * @return string
      */
-    public function get_column_field_name($id){
-        return parent::get_column_field_name('content',$id);
+    public function get_column_field_name($id) {
+        return parent::get_column_field_name('content', $id);
     }
 
 
@@ -832,8 +854,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param int $id
      * @return mixed
      */
-    public function get_column_field_type($id){
-        return $this->get_column_field('content',$id,'form_field_type');
+    public function get_column_field_type($id) {
+        return $this->get_column_field('content', $id, 'form_field_type');
     }
 
 
@@ -843,18 +865,19 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $column_name
      * @return boolean
      */
-    public function check_column_exists($column_name){
-        return parent::check_column_exists('content',$column_name);
+    public function check_column_exists($column_name) {
+        return parent::check_column_exists('content', $column_name);
     }
 
 
     /**
-     * Checks the SQLite database loaded is valid for use in DataPlus.  It checks there are not more than 4
+     * Checks the SQLite database loaded is valid for use in DataPlus.  It checks there are not
+     * more than 4
      * tables and that 'content' and 'templates' tables exist
      * 
      * @return mixed
      */
-    public function validate_database(){
+    public function validate_database() {
         $validate = parent::validate_database();
 
         if ($validate !== true) {
@@ -864,25 +887,25 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $table_count = $this->count_database_query('sqlite_master');
 
         if ($table_count>6) {
-            return get_string('validate_toomanytables','dataplus');
+            return get_string('validate_toomanytables', 'dataplus');
         }
 
         $content_exists = $this->table_exists('content');
 
         if (!$content_exists) {
-            return get_string('validate_table_content','dataplus');
+            return get_string('validate_table_content', 'dataplus');
         }
 
         $templates_exists = $this->table_exists('templates');
 
         if (!$templates_exists) {
-            return get_string('validate_table_templates','dataplus');
+            return get_string('validate_table_templates', 'dataplus');
         }
 
         $templates_exists = $this->table_exists('supportinginfo');
 
-        if(!$templates_exists){
-            return get_string('validate_table_supportinginfo','dataplus');
+        if (!$templates_exists) {
+            return get_string('validate_table_supportinginfo', 'dataplus');
         }
 
         return true;
@@ -898,9 +921,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string/int $group_id
      * @return boolean
      */
-    public function add_column($column_label, $form_field_type, $form_field_options = null, $group_id = '0'){
+    public function add_column($column_label, $form_field_type, $form_field_options = null,
+        $group_id = '0') {
         $type = $this->get_field_data_type($form_field_type);
-        $name = parent::add_column($column_label,$type);
+        $name = parent::add_column($column_label, $type);
 
         if ($name === false) {
             return false;
@@ -922,13 +946,13 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[1]->value = 'content';
             $parameters[1]->operator = 'equals';
 
-            $result = $this->update_record("column",$columns,$parameters);
+            $result = $this->update_record("column", $columns, $parameters);
 
             $combi_fields = $this->get_combi_fields();
 
             if (!empty($combi_fields[$form_field_type])) {
                 foreach ($combi_fields[$form_field_type] as $field) {
-                    $result = $this->add_supporting_column($name,$field);
+                    $result = $this->add_supporting_column($name, $field);
                 }
             }
         }
@@ -938,13 +962,15 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
 
     /**
-     * adds a supporting column for field types that require it (e.g. alt tags for images, descriptors for URLs, etc)
+     * adds a supporting column for field types that require it (e.g. alt tags for images,
+     * descriptors for URLs, etc)
      *
      * @param string $assoc_name
      * @return boolean
      */
-    private function add_supporting_column($assoc_name, $name_extra = ''){
-        $result = $this->add_column($assoc_name  . $name_extra . $this->get_supporting_suffix(), 'supp');
+    private function add_supporting_column($assoc_name, $name_extra = '') {
+        $result = $this->add_column($assoc_name . $name_extra . $this->get_supporting_suffix(),
+            'supp');
 
         return $result;
     }
@@ -956,7 +982,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param int $column_id
      * @return boolean
      */
-    public function delete_column($column_id){
+    public function delete_column($column_id) {
         $type = $this->get_column_field_type($column_id);
         $name = $this->get_column_field_name($column_id);
         $result = parent::delete_column('content', $column_id);
@@ -969,17 +995,17 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         if (!empty($combi_fields[$type])) {
             foreach ($combi_fields[$type] as $field) {
-                $result = $this->delete_supporting_column($name,$field);
+                $result = $this->delete_supporting_column($name, $field);
             }
-       }
+        }
 
         $templates = $this->get_templates();
 
         foreach ($templates as $template) {
             $temp = $template->record;
-            $rep = str_replace("[[{$name}]]","",$temp);
+            $rep = str_replace("[[{$name}]]", "", $temp);
 
-            if (strcmp($temp,$rep) != 0) {
+            if (strcmp($temp, $rep) != 0) {
                 $template->record = $rep;
                 $vals = $this->convert_object_to_values($template);
 
@@ -997,12 +1023,12 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $name
      * @return boolean
      */
-    private	function delete_supporting_column($name,$extra = ''){
+    private	function delete_supporting_column($name, $extra = '') {
         $cols = $this->list_dataplus_table_columns(true);
         $result = false;
 
         foreach ($cols as $col) {
-            if ($col->name == $name.$extra.$this->get_supporting_suffix()) {
+            if ($col->name == $name . $extra . $this->get_supporting_suffix()) {
                 $result = $this->delete_column($col->id);
 
                 break;
@@ -1019,7 +1045,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param obj $column_details
      * @return array
      */
-    public function alter_column($column_details){
+    public function alter_column($column_details) {
         global $currentgroup;
 
         if (empty($column_details->type)) {
@@ -1028,7 +1054,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         $stored_column = $this->get_column_details($column_details->id);
 
-        $result = parent::alter_column('content',$column_details);
+        $result = parent::alter_column('content', $column_details);
 
         if (!$result) {
             return $result;
@@ -1047,7 +1073,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $i++;
 
             $supp_alter = 'TYPE';
-            $result = parent::alter_column('content',$column_details);
+            $result = parent::alter_column('content', $column_details);
 
             if ($result === "COLUMNEXISTS"  || $result === false) {
                 return $result;
@@ -1070,7 +1096,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         $i++;
 
-        if(sizeof($update)>0){
+        if (count($update) > 0) {
             $parameters = array();
             $parameters[0]->name = 'id';
             $parameters[0]->value = $column_details->id;
@@ -1080,7 +1106,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[1]->value = 'content';
             $parameters[1]->operator = 'equals';
 
-            $result = $this->update_record('column',$update,$parameters);
+            $result = $this->update_record('column', $update, $parameters);
 
             if ($result !== true) {
                 return $result;
@@ -1093,14 +1119,15 @@ class sqlite3_db_dataplus extends sqlite3_db {
         if ($supp_alter == 'TYPE') {
             $types = $this->get_combi_fields_types();
 
-            if (in_array($stored_column->form_field_type,$types)) {
+            if (in_array($stored_column->form_field_type, $types)) {
                 $result = $this->delete_supporting_column($stored_column->name);
             }
 
-            if (in_array($column_details->form_field_type,$types)) {
-                $result = $this->add_supporting_column($name,$label,$column_details->form_field_type);
+            if (in_array($column_details->form_field_type, $types)) {
+                $result = $this->add_supporting_column($name, $label,
+                    $column_details->form_field_type);
             }
-        } else if (in_array($column_details->form_field_type,$this->get_combi_fields_types())) {
+        } else if (in_array($column_details->form_field_type, $this->get_combi_fields_types())) {
             $result = $this->rename_supporting_column($stored_column->name, $name, $label);
         }
 
@@ -1109,9 +1136,9 @@ class sqlite3_db_dataplus extends sqlite3_db {
         foreach ($templates as $template) {
             $temp = $template->record;
             $name = $this->create_valid_object_name($column_details->label);
-            $rep = str_replace("[[{$stored_column->name}]]","[[{$name}]]",$temp);
+            $rep = str_replace("[[{$stored_column->name}]]", "[[{$name}]]", $temp);
 
-            if (strcmp($temp,$rep) != 0) {
+            if (strcmp($temp, $rep) != 0) {
                 $template->record = $rep;
                 $vals = $this->convert_object_to_values($template);
 
@@ -1131,7 +1158,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $assoc_label
      * @return boolean
      */
-    private function rename_supporting_column($assoc_name, $extra, $assoc_new_name, $assoc_label){
+    private function rename_supporting_column($assoc_name, $extra, $assoc_new_name, $assoc_label) {
         $cols = $this->list_dataplus_table_columns(true);
         $new_name = $assoc_new_name . $extra . $this->get_supporting_suffix();
 
@@ -1160,10 +1187,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param array $columns
      * @return array
      */
-    public function insert_dataplus_record($columns){
+    public function insert_dataplus_record($columns) {
         global $USER, $currentgroup;
 
-        $i = sizeof($columns);
+        $i = count($columns);
 
         $columns[$i]->name  = 'creator';
         $columns[$i]->value = $USER->firstname.' '.$USER->lastname;
@@ -1188,7 +1215,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[$i]->name  = 'last_update_time';
         $columns[$i]->value = time();
 
-        return $this->insert_record('content',$columns);
+        return $this->insert_record('content', $columns);
     }
 
 
@@ -1198,8 +1225,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param array $parameters
      * @return boolean
      */
-    public function delete_dataplus_record($parameters = null){
-        return $this->delete_record('content',$parameters);
+    public function delete_dataplus_record($parameters = null) {
+        return $this->delete_record('content', $parameters);
     }
 
 
@@ -1209,7 +1236,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param array $template
      * @return boolean
      */
-    public function update_template($template){
+    public function update_template($template) {
         foreach ($template as $t) {
             if ($t->name == 'type') {
                 $type = $t->value;
@@ -1220,10 +1247,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
             }
         }
 
-        $exists = $this->get_template($type, false); 
+        $exists = $this->get_template($type, false);
 
         if (empty($exists)) {
-            return $this->insert_record('templates',$template);
+            return $this->insert_record('templates', $template);
         }
 
         $parameters = array();
@@ -1236,7 +1263,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $parameters[1]->operator = 'equals';
         $parameters[1]->andor = 'AND';
 
-        return $this->update_record('templates',$template,$parameters);
+        return $this->update_record('templates', $template, $parameters);
     }
 
 
@@ -1247,10 +1274,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param array $parameters
      * @return boolean
      */
-    public function update_dataplus_record($columns,$parameters){
+    public function update_dataplus_record($columns, $parameters) {
         global $USER, $currentgroup;
 
-        $i = sizeof($columns);
+        $i = count($columns);
         $columns[$i]->name = 'last_update';
         $columns[$i]->value = $USER->firstname.' '.$USER->lastname;
 
@@ -1262,22 +1289,22 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[$i]->name = 'last_update_time';
         $columns[$i]->value = time();
 
-        return $this->update_record('content',$columns,$parameters);
+        return $this->update_record('content', $columns, $parameters);
     }
 
 
     /**
-     * return a template from the database.  In groups mode, if no template for the current group is found,
-     * this function will look for a template set to 'all participants'.
+     * return a template from the database.  In groups mode, if no template for the current group
+     * is found, this function will look for a template set to 'all participants'.
      *
      * @param string $type
      * @param boolean $check_all_participants
      * @return mixed
      */
-    public function get_template($type,$check_all_participants = true){
+    public function get_template($type, $check_all_participants = true) {
         global $currentgroup;
 
-        $columns = array('header','record','footer','js','css','comments','sortorder');
+        $columns = array('header', 'record', 'footer', 'js', 'css', 'comments', 'sortorder');
 
         $parameters = array();
         $parameters[0]->name = 'type';
@@ -1289,7 +1316,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $parameters[1]->operator = 'equals';
         $parameters[1]->andor = 'AND';
 
-        $template = $this->query_database('templates',$columns,$parameters);
+        $template = $this->query_database('templates', $columns, $parameters);
 
         if ($check_all_participants && empty($template)) {
             $parameters[1]->name = 'group_id';
@@ -1297,7 +1324,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[1]->operator = 'equals';
             $parameters[1]->andor = 'AND';
 
-            $template = $this->query_database('templates',$columns,$parameters);
+            $template = $this->query_database('templates', $columns, $parameters);
         }
 
         if ($check_all_participants && empty($template)) {
@@ -1306,7 +1333,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[1]->operator = 'equals';
             $parameters[1]->andor = 'AND';
 
-            $template = $this->query_database('templates',$columns,$parameters);
+            $template = $this->query_database('templates', $columns, $parameters);
         }
 
         if (empty($template)) {
@@ -1322,9 +1349,9 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return array
      */
-    public function get_templates(){
-        $columns = array('id','header','record','footer','type','group_id','comments');
-        $templates = $this->query_database('templates',$columns);
+    public function get_templates() {
+        $columns = array('id', 'header', 'record', 'footer', 'type', 'group_id', 'comments');
+        $templates = $this->query_database('templates', $columns);
 
         return $templates;
     }
@@ -1336,7 +1363,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $type
      * @return unknown
      */
-    public function delete_template($type){
+    public function delete_template($type) {
         global $currentgroup;
 
         $delete_params[0]->name = 'group_id';
@@ -1347,12 +1374,13 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $delete_params[1]->value = $type;
         $delete_params[1]->operator = 'equals';
 
-        return $this->delete_record('templates',$delete_params);
+        return $this->delete_record('templates', $delete_params);
     }
 
 
     /**
-     * return a query containing given columns to given parameters to a set limit in a particular order.  
+     * return a query containing given columns to given parameters to a set limit in a particular
+     * order.
      * Should return everything if no params are set
      *
      * @param array $columns
@@ -1361,7 +1389,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param array $order
      * @return array
      */
-    public function query_dataplus_database($columns = null,$parameters = null, $limit = null, $order = null){
+    public function query_dataplus_database($columns = null, $parameters = null, $limit = null,
+        $order = null) {
         if (is_null($columns)) {
             $columns_details = $this->list_dataplus_table_columns(true);
 
@@ -1370,19 +1399,21 @@ class sqlite3_db_dataplus extends sqlite3_db {
             }
         }
 
-        return $this->query_database('content',$columns,$parameters,$limit, $order);
+        return $this->query_database('content', $columns, $parameters, $limit, $order);
     }
 
 
     /**
-     * Returns a single result (if the query returns more than one result then the first result is returned).
+     * Returns a single result (if the query returns more than one result then the first result is
+     * returned).
      *
      * @param array $columns
      * @param array $parameters
      * @param array $order
      * @return object
      */
-    public function query_dataplus_database_single($columns = null,$parameters = null, $order = null){
+    public function query_dataplus_database_single($columns = null, $parameters = null,
+        $order = null) {
         if (is_null($columns)) {
             $columns_details = $this->list_dataplus_table_columns(true);
 
@@ -1391,7 +1422,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             }
         }
 
-        return $this->query_database_single('content',$columns,$parameters,$order);
+        return $this->query_database_single('content', $columns, $parameters, $order);
     }
 
 
@@ -1401,8 +1432,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param array $parameters
      * @return int
      */
-    public function count_dataplus_database_query($parameters = null){
-        return $this->count_database_query('content',$parameters);
+    public function count_dataplus_database_query($parameters = null) {
+        return $this->count_database_query('content', $parameters);
     }
 
 
@@ -1411,7 +1442,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    public function generate_UK_dates(){
+    public function generate_uk_dates() {
         $cols = $this->list_dataplus_table_columns(true);
         $date_cols = array();
         $date_time_cols = array();
@@ -1440,7 +1471,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             foreach ($date_cols as $d) {
                 if (!empty($record->$d)) {
                     $update[$i]->name = $d;
-                    $update[$i]->value = Date('d/m/Y', $record->$d);
+                    $update[$i]->value = date('d/m/Y', $record->$d);
                     $i++;
                 }
             }
@@ -1448,12 +1479,12 @@ class sqlite3_db_dataplus extends sqlite3_db {
             foreach ($date_time_cols as $d) {
                 if (!empty($record->$d)) {
                     $update[$i]->name = $d;
-                    $update[$i]->value = Date('d/m/Y H:i:s', $record->$d);
+                    $update[$i]->value = date('d/m/Y H:i:s', $record->$d);
                     $i++;
                 }
             }
 
-            if (!empty($update) && !$this->update_record('content',$update,$parameters)) {
+            if (!empty($update) && !$this->update_record('content', $update, $parameters)) {
                 return false;
             }
         }
@@ -1467,7 +1498,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    public function unused_database(){
+    public function unused_database() {
         $records = $this->count_dataplus_database_query();
 
         if ($records > 0) {
@@ -1476,7 +1507,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
 
         $columns = $this->count_database_query('column');
 
-        if ($columns > sizeof($this->detail_content_table_supporting_columns())) {
+        if ($columns > count($this->detail_content_table_supporting_columns())) {
             return false;
         }
 
@@ -1489,8 +1520,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return boolean
      */
-    public function empty_user_data(){
-        if (!$this->delete_dataplus_record()){
+    public function empty_user_data() {
+        if (!$this->delete_dataplus_record()) {
             return false;
         }
 
@@ -1503,7 +1534,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return int
      */
-    public function count_user_entries(){
+    public function count_user_entries() {
         global $USER;
 
         $parameters[0]->name = 'creator_id';
@@ -1519,19 +1550,19 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * 
      * @return int
      */
-	public function count_user_fields(){
+    public function count_user_fields() {
         $supporting_cols = $this->detail_content_table_supporting_columns();
         $parameters = array();
 
         foreach ($supporting_cols as $col) {
-            $s = sizeof($parameters);
+            $s = count($parameters);
             $parameters[$s]->name = 'name';
             $parameters[$s]->value = $col->name;
             $parameters[$s]->operator = 'notequal';
             $parameters[$s]->andor = 'AND';
         }
 
-        return $this->count_database_query('column',$parameters);
+        return $this->count_database_query('column', $parameters);
     }
 
 
@@ -1541,11 +1572,11 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param obj $obj
      * @return array
      */
-    public function convert_object_to_values($obj){
+    public function convert_object_to_values($obj) {
         $ar = array();
         $i = 0;
 
-        foreach ($obj as $name=>$value) {
+        foreach ($obj as $name => $value) {
             $ar[$i]->name = $name;
             $ar[$i]->value = $value;
             $i++;
@@ -1561,16 +1592,16 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string field_name
      * @return boolean
      */
-    public function ids_to_usernames($field_name){
+    public function ids_to_usernames($field_name) {
         $updates = $this->query_dataplus_database(array($field_name));
         $updates_done = array();
-        
+
         foreach ($updates as $u) {
-            if (in_array($u->$field_name,$updates_done)) {
+            if (in_array($u->$field_name, $updates_done)) {
                 continue;
             }
 
-            $user_data = get_complete_user_data('id',$u->$field_name);
+            $user_data = get_complete_user_data('id', $u->$field_name);
             $updates_done[] = $u->$field_name;
             $update[0]->name  = $field_name;
 
@@ -1584,7 +1615,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
             $parameters[0]->value = $u->$field_name;
             $parameters[0]->operator = 'equals';
 
-            if($this->update_record('content',$update,$parameters)){
+            if ($this->update_record('content', $update, $parameters)) {
                 continue;
             } else {
                 return false;
@@ -1599,7 +1630,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * get comment table column names
      * @return array
      */
-    public function get_comment_column_names(){
+    public function get_comment_column_names() {
         return array('id',
                      'comment',
                      'group_id',
@@ -1619,7 +1650,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $groupid
      * @return boolean
      */
-    public function insert_comment($record_id,$comment){
+    public function insert_comment($record_id, $comment) {
         global $USER, $currentgroup;
 
         $columns[0]->name = 'creator';
@@ -1649,7 +1680,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $columns[8]->name = 'group_id';
         $columns[8]->value = $currentgroup;
 
-        return $this->insert_record('comments',$columns);
+        return $this->insert_record('comments', $columns);
     }
 
     /**
@@ -1658,14 +1689,14 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param int $id
      * @return boolean
      */
-    public function delete_comment($id){
+    public function delete_comment($id) {
         global $currentgroup;
-        
+
         $params[0]->name = 'id';
         $params[0]->value = $id;
         $params[0]->operator = 'equals';
 
-        return $this->delete_record('comments',$params);
+        return $this->delete_record('comments', $params);
     }
 
 
@@ -1676,7 +1707,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param string $comment
      * return boolean
      */
-    public function update_comment($id,$comment){
+    public function update_comment($id, $comment) {
         global $USER;
 
         $columns[0]->name = 'comment';
@@ -1696,7 +1727,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $parameters[0]->value = $id;
         $parameters[0]->operator = 'equals';
 
-        return $this->update_record('comments',$columns,$parameters);
+        return $this->update_record('comments', $columns, $parameters);
     }
 
 
@@ -1706,7 +1737,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param int $id
      * @return mixed
      */
-    public function get_comment($id, $additional_parameters = null){
+    public function get_comment($id, $additional_parameters = null) {
         global $currentgroup;
 
         $columns = $this->get_comment_column_names();
@@ -1717,10 +1748,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
         $parameters[0]->operator = 'equals';
 
         if (!is_null($additional_parameters)) {
-            $parameters = array_merge($parameters,$additional_parameters);
+            $parameters = array_merge($parameters, $additional_parameters);
         }
 
-        $comment = $this->query_database('comments',$columns,$parameters);
+        $comment = $this->query_database('comments', $columns, $parameters);
 
         if (empty($comment)) {
             return false;
@@ -1736,7 +1767,8 @@ class sqlite3_db_dataplus extends sqlite3_db {
      * @param int $rid
      * @return array
      */
-    public function get_record_comments($rid, $end = NULL, $start = NULL, $additional_parameters = null){
+    public function get_record_comments($rid, $end = null, $start = null,
+        $additional_parameters = null) {
         global $currentgroup;
 
         $columns = $this->get_comment_column_names();
@@ -1754,7 +1786,7 @@ class sqlite3_db_dataplus extends sqlite3_db {
         }
 
         if (!is_null($start)) {
-            $val = sizeof($parameters) +1;
+            $val = count($parameters) +1;
             $parameters[$val]->name = 'id';
             $parameters[$val]->value = $start;
             $parameters[$val]->operator = 'greaterthan';
@@ -1762,10 +1794,10 @@ class sqlite3_db_dataplus extends sqlite3_db {
         }
 
         if (!is_null($additional_parameters)) {
-            $parameters = array_merge($parameters,$additional_parameters);
+            $parameters = array_merge($parameters, $additional_parameters);
         }
 
-        $comments = $this->query_database('comments',$columns,$parameters);
+        $comments = $this->query_database('comments', $columns, $parameters);
 
         if (empty($comments)) {
             return false;

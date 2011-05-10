@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -6,7 +22,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package dataplus
  */
-require_once ($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot.'/course/moodleform_mod.php');
 
 // form for searching the database
 class dataplus_search_form extends moodleform {
@@ -15,7 +31,7 @@ class dataplus_search_form extends moodleform {
      * moodleforms requires a definition(), but I don't want the fields defined when the 
      * class is instantiated, so this one does nothing
      */
-    function definition(){
+    public function definition() {
         return;
     }
 
@@ -28,12 +44,15 @@ class dataplus_search_form extends moodleform {
      * @param int $no
      * @param array $sort_choices
      */
-    function define_sort_field($mform,$no,$sort_choices){
-        $mform->addElement('select', 'sort' . $no, get_string('sort' . ($no+1), 'dataplus'), $sort_choices);
+    public function define_sort_field($mform, $no, $sort_choices) {
+        $mform->addElement('select', 'sort' . $no, get_string('sort' . ($no + 1), 'dataplus'),
+            $sort_choices);
 
         $sort_options = array();
-        $sort_options[] = &MoodleQuickForm::createElement('radio', 'sort_options' . $no, '', get_string('ascending', 'dataplus'), 'ASC');
-        $sort_options[] = &MoodleQuickForm::createElement('radio', 'sort_options' . $no, '', get_string('descending', 'dataplus'), 'DESC');
+        $sort_options[] = &MoodleQuickForm::createElement('radio', 'sort_options' . $no, '',
+            get_string('ascending', 'dataplus'), 'ASC');
+        $sort_options[] = &MoodleQuickForm::createElement('radio', 'sort_options' . $no, '',
+            get_string('descending', 'dataplus'), 'DESC');
         $mform->addGroup($sort_options, 'sort_options' . $no, '', array(' '), false);
     }
 
@@ -44,11 +63,14 @@ class dataplus_search_form extends moodleform {
      * @param obj $field
      * @return array
      */
-    function define_date_options($field){
+    public function define_date_options($field) {
         $date_options   = array();
-        $date_options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '', get_string('before', 'dataplus'), 'lessthan');
-        $date_options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '', get_string('equals', 'dataplus'), 'equals');
-        $date_options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '', get_string('since', 'dataplus'), 'greaterthan');
+        $date_options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '',
+            get_string('before', 'dataplus'), 'lessthan');
+        $date_options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '',
+            get_string('equals', 'dataplus'), 'equals');
+        $date_options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '',
+            get_string('since', 'dataplus'), 'greaterthan');
 
         return $date_options;
     }
@@ -62,7 +84,7 @@ class dataplus_search_form extends moodleform {
      * @param string $name
      * @param string $label
      */
-    function define_text_field($mform,$formtype,$name,$label){
+    public function define_text_field($mform, $formtype, $name, $label) {
         $str_contains = get_string('contains', 'dataplus');
         $str_equals = get_string('equals', 'dataplus');
 
@@ -70,8 +92,10 @@ class dataplus_search_form extends moodleform {
 
         if ($formtype == 'searchadvanced') {
             $speficity_options = array();
-            $speficity_options[] = &MoodleQuickForm::createElement('radio', $name . '_specificity', '', $str_contains, 'contains');
-            $speficity_options[] = &MoodleQuickForm::createElement('radio', $name . '_specificity', '', $str_equals, 'equals');
+            $speficity_options[] = &MoodleQuickForm::createElement('radio', $name . '_specificity',
+                '', $str_contains, 'contains');
+            $speficity_options[] = &MoodleQuickForm::createElement('radio', $name . '_specificity',
+                '', $str_equals, 'equals');
             $mform->addGroup($speficity_options, $name .  '_specificity', '', array(' '), false);
         }
     }
@@ -86,7 +110,7 @@ class dataplus_search_form extends moodleform {
      * @param int $id
      * @param string $formtype
      */
-    function define_fields($fields,$supporting_fields,$cm,$id,$formtype = 'search'){
+    public function define_fields($fields, $supporting_fields, $cm, $id, $formtype = 'search') {
         global $CFG, $dataplus_db;
 
         $mform =&$this->_form;
@@ -96,20 +120,22 @@ class dataplus_search_form extends moodleform {
         $search_url = "{$CFG->wwwroot}/mod/dataplus/view.php?id={$id}&amp;mode=";
 
         //if on an advanced search, add a link to simple search and vice versa
-        if ($formtype=='searchadvanced') {
+        if ($formtype == 'searchadvanced') {
             $str = get_string('simplesearch', 'dataplus');
-            $mform->addElement('static','link','',"<div class=\"dataplus_search_type\"><a href=\"{$search_url}search\">{$str}</a></div>");
-        } else{
+            $mform->addElement('static', 'link', '', "<div class=\"dataplus_search_type\">
+                <a href=\"{$search_url}search\">{$str}</a></div>");
+        } else {
             $str = get_string('advancedsearch', 'dataplus');
-            $mform->addElement('static','link','',"<div class=\"dataplus_search_type\"><a href=\"{$search_url}searchadvanced\">{$str}</a></div>");
+            $mform->addElement('static', 'link', '', "<div class=\"dataplus_search_type\">
+                <a href=\"{$search_url}searchadvanced\">{$str}</a></div>");
         }
 
-        $text_search_types = array('smalltext','url','longtext','image');
-        $sort_choices = array (''=>'');
+        $text_search_types = array('smalltext', 'url', 'longtext', 'image');
+        $sort_choices = array ('' => '');
 
         //itterate through each field and display according to the form_field_type
         foreach ($fields as $field) {
-            if (in_array($field->form_field_type,$text_search_types)) {
+            if (in_array($field->form_field_type, $text_search_types)) {
                 if ($field->form_field_type == 'image') {
                     $name = $field->name.$dataplus_db->get_supporting_suffix();
                     $label = $field->label.' '.get_string('alttag', 'dataplus');
@@ -118,23 +144,29 @@ class dataplus_search_form extends moodleform {
                     $label = $field->label;
                 }
 
-                $this->define_text_field($mform,$formtype,$name,$label);
+                $this->define_text_field($mform, $formtype, $name, $label);
 
                 if ($field->form_field_type == 'url' && $formtype == 'searchadvanced') {
-                    $this->define_text_field($mform,$formtype,$name . $dataplus_db->get_supporting_suffix(),get_string('suppdesc','dataplus',$field->label));
+                    $this->define_text_field($mform, $formtype, $name.
+                        $dataplus_db->get_supporting_suffix(), get_string('suppdesc', 'dataplus',
+                        $field->label));
                 }
-            } else if ($field->form_field_type == 'number'){
+            } else if ($field->form_field_type == 'number') {
                 $mform->addElement('text', $field->name, format_string($field->label));
 
                 if ($formtype == 'searchadvanced') {
                     $options   = array();
-                    $options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '', get_string('lessthan', 'dataplus'), 'lessthan');
-                    $options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '', get_string('equals', 'dataplus'), 'equals');
-                    $options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow', '', get_string('greaterthan', 'dataplus'), 'greaterthan');
+                    $options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow',
+                        '', get_string('lessthan', 'dataplus'), 'lessthan');
+                    $options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow',
+                        '', get_string('equals', 'dataplus'), 'equals');
+                    $options[] = &MoodleQuickForm::createElement('radio', $field->name.'_arrow',
+                        '', get_string('greaterthan', 'dataplus'), 'greaterthan');
 
                     $mform->addGroup($options, $field->name . '_arrow', '', array(' '), false);
                 }
-            } else if ($field->form_field_type == 'date' || $field->form_field_type == 'datetime') {
+            } else if ($field->form_field_type == 'date'
+                || $field->form_field_type == 'datetime') {
                 if ($field->form_field_type == 'datetime') {
                     $type = 'date_time_selector';
                 } else {
@@ -142,41 +174,46 @@ class dataplus_search_form extends moodleform {
                 }
 
                 $mform->addElement($type, $field->name, format_string($field->label));
-                $mform->setDefault($field->name,39600);
+                $mform->setDefault($field->name, 39600);
 
                 $date_options = $this->define_date_options($field);
                 $mform->addGroup($date_options, $field->name . '_arrow', '', array(' '), false);
                 $mform->setDefault($field->name . '_arrow', 'greaterthan');
             } else if ($field->form_field_type == 'boolean') {
                 $radioarray   = array();
-                $radioarray[] = &MoodleQuickForm::createElement('radio', $field->name, '', get_string('true', 'dataplus'), 1);
-                $radioarray[] = &MoodleQuickForm::createElement('radio', $field->name, '', get_string('false', 'dataplus'), 0);
-                $radioarray[] = &MoodleQuickForm::createElement('radio', $field->name, '', get_string('boo_ignore', 'dataplus'), 'null');
+                $radioarray[] = &MoodleQuickForm::createElement('radio', $field->name, '',
+                    get_string('true', 'dataplus'), 1);
+                $radioarray[] = &MoodleQuickForm::createElement('radio', $field->name, '',
+                    get_string('false', 'dataplus'), 0);
+                $radioarray[] = &MoodleQuickForm::createElement('radio', $field->name, '',
+                    get_string('boo_ignore', 'dataplus'), 'null');
 
                 $mform->addGroup($radioarray, $field->name, $field->label, array(''), false);
-                $mform->setDefault($field->name, 'null');                   
-            } else if ($field->form_field_type == 'menusingle' || $field->form_field_type == 'menumultiple') {
+                $mform->setDefault($field->name, 'null');
+            } else if ($field->form_field_type == 'menusingle'
+                || $field->form_field_type == 'menumultiple') {
                 $options = array();
 
-                $field_options = explode("\r\n",$field->form_field_options);
+                $field_options = explode("\r\n", $field->form_field_options);
 
-                if (sizeof($field_options) <= 1) {
-                    $field_options = explode("\r",$field->form_field_options);
+                if (count($field_options) <= 1) {
+                    $field_options = explode("\r", $field->form_field_options);
                 }
 
-                if (sizeof($field_options) <= 1) {
-                    $field_options = explode("\n",$field->form_field_options);
+                if (count($field_options) <= 1) {
+                    $field_options = explode("\n", $field->form_field_options);
                 }
 
                 if (!empty($field_options[0])) {
-                    $field_options = array_merge(array(' '),$field_options);
+                    $field_options = array_merge(array(' '), $field_options);
                 }
-                    
+
                 foreach ($field_options as $field_option) {
                     $options[$field_option] = $field_option;
                 }
-                    
-                $select = $mform->addElement('select', $field->name, format_string($field->label), $options);
+
+                $select = $mform->addElement('select', $field->name, format_string($field->label),
+                    $options);
             } else {
                 continue;
             }
@@ -187,17 +224,19 @@ class dataplus_search_form extends moodleform {
         }
 
         if ($formtype == 'searchadvanced') {
-            foreach ($supporting_fields as $field){
+            foreach ($supporting_fields as $field) {
                 if (!$field->hidden) {
                     if ($field->type == 'text') {
-                        $mform->addElement('static','break','','<br/>');
+                        $mform->addElement('static', 'break', '', '<br/>');
                         $mform->addElement('text', $field->name, format_string($field->label));
                     } else if ($field->type == 'date') {
-                        $mform->addElement('date_selector', $field->name, format_string($field->label));
-                        $mform->setDefault($field->name,$cm->added);
+                        $mform->addElement('date_selector', $field->name,
+                            format_string($field->label));
+                        $mform->setDefault($field->name, $cm->added);
 
                         $date_options = $this->define_date_options($field);
-                        $mform->addGroup($date_options, $field->name . '_arrow', '', array(' '), false);
+                        $mform->addGroup($date_options, $field->name . '_arrow', '', array(' '),
+                            false);
                         $mform->setDefault($field->name . '_arrow', 'greaterthan');
                     }
 
@@ -205,19 +244,20 @@ class dataplus_search_form extends moodleform {
                 }
             }
 
-            $mform->addElement('static','break','','<br/><strong>' . get_string('sort', 'dataplus') . '</strong>');
+            $mform->addElement('static', 'break', '', '<br/><strong>'.
+                get_string('sort', 'dataplus').'</strong>');
 
-            if ((sizeof($sort_choices)-1)<3) {
-                $levels = sizeof($sort_choices)-1;
+            if ((count($sort_choices) - 1) < 3) {
+                $levels = count($sort_choices) - 1;
             } else {
                 $levels = 3;
             }
 
-            for ($i=0; $i<$levels; $i++) {
-                $this->define_sort_field($mform,$i,$sort_choices);
+            for ($i = 0; $i < $levels; $i++) {
+                $this->define_sort_field($mform, $i, $sort_choices);
             }
         }
 
-        $this->add_action_buttons(true,get_string('search', 'dataplus'));
+        $this->add_action_buttons(true, get_string('search', 'dataplus'));
     }
 }

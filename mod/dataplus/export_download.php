@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -21,7 +37,7 @@ require_once($CFG->libdir.'/filelib.php');
 $id = required_param('id', PARAM_INT);
 $mode = optional_param('mode', null, PARAM_TEXT);
 $cm = get_coursemodule_from_id('dataplus', $id);
-$context = get_context_instance(CONTEXT_MODULE,$cm->id);
+$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
 if (!$cm = get_coursemodule_from_id('dataplus', $id)) {
     print_error("Course Module ID was incorrect");
@@ -58,10 +74,10 @@ $zip_file_info['filename'] = $zip_filename;
 $db_file_info = $dataplus_filehelper->get_file_fileinfo();
 $db_file_info['filearea'] = 'dataplus';
 $db_file_info['itemid'] = $dataplus->id;
-$db_file_info['filename'] = (string) $dataplus->id .'.sqlite'; 
+$db_file_info['filename'] = (string) $dataplus->id .'.sqlite';
 
 //make a copy of the database to prepare for download
-$dataplus_filehelper->copy($db_file_info,$to_zip_path);
+$dataplus_filehelper->copy($db_file_info, $to_zip_path);
 $database_file_path = $to_zip_path.'/'.$dataplus->id.'.sqlite';
 
 //code for the download of a simple SQLite3 database or a CSV file
@@ -110,24 +126,25 @@ if ($mode == 'simple' || $mode == 'csv') {
                     if (!empty($fn->$col_name)) {
                         if ($col->form_field_type == 'image') {
                             $from = $image_fileinfo;
-                            $to   = $dataplus_filehelper->get_tozip_images_path() . "/" . $fn->$col_name;
+                            $to   = $dataplus_filehelper->get_tozip_images_path()."/".
+                                    $fn->$col_name;
                         } else {
                             $from = $file_fileinfo;
-                            $to   = $dataplus_filehelper->get_tozip_files_path() . "/" . $fn->$col_name;
+                            $to   = $dataplus_filehelper->get_tozip_files_path()."/".
+                                    $fn->$col_name;
                         }
 
                         $from['fileinfo'] = $fn->$col_name;
 
-                        $dataplus_filehelper->copy($from,$to);
+                        $dataplus_filehelper->copy($from, $to);
                     }
                 }
             }
         }
-    }
-    //If groups are not used, add all images and files to the archive
-    else {
-        $dataplus_filehelper->copy($image_fileinfo,$dataplus_filehelper->get_tozip_images_path());
-        $dataplus_filehelper->copy($file_fileinfo,$dataplus_filehelper->get_tozip_files_path());
+    } else {
+        //If groups are not used, add all images and files to the archive
+        $dataplus_filehelper->copy($image_fileinfo, $dataplus_filehelper->get_tozip_images_path());
+        $dataplus_filehelper->copy($file_fileinfo, $dataplus_filehelper->get_tozip_files_path());
     }
 
     $i = 0;
@@ -141,11 +158,11 @@ if ($mode == 'simple' || $mode == 'csv') {
         $cols_to_rem[] = 'last_update_id';
     } else {
         $dataplus_db->ids_to_usernames('creator_id');
-        $dataplus_db->ids_to_usernames('last_update_id');  
+        $dataplus_db->ids_to_usernames('last_update_id');
     }
 
     foreach ($cols as $col) {
-        if (in_array($col->name,$cols_to_rem)) {
+        if (in_array($col->name, $cols_to_rem)) {
             $dataplus_db->delete_column($col->id);
             unset($cols[$i]);
         }
@@ -154,7 +171,7 @@ if ($mode == 'simple' || $mode == 'csv') {
     }
 
     //convert dates in the database from seconds from the Unix Epoch to UK date format.
-    $dataplus_db->generate_UK_dates();
+    $dataplus_db->generate_uk_dates();
 
     //if csv is selected, generate the csv file.
     if ($mode == 'csv') {
@@ -169,39 +186,37 @@ if ($mode == 'simple' || $mode == 'csv') {
             $content .= $col->label . ",";
         }
 
-        $content = substr($content,0,(strlen($content)-1));
+        $content = substr($content, 0, (strlen($content) -1));
         $content .= "\r\n";
 
         foreach ($all_records as $record) {
             $row = '';
 
             foreach ($record as $field) {
-                $field = str_replace(",","�",$field);
-                $row .= $field . ",";
+                $field = str_replace(", ", "�", $field);
+                $row .= $field . ", ";
             }
 
-            $row = str_replace("\r\n","",$row);
-            $row = substr($row,0,(strlen($row)-1));
+            $row = str_replace("\r\n", "", $row);
+            $row = substr($row, 0, (strlen($row) - 1));
             $row .= "\r\n";
             $content .= $row;
         }
 
         fulldelete($tozip_path.'/'.$dataplus->id.'.sqlite');
-        file_put_contents($output_path,$content);
+        file_put_contents($output_path, $content);
         $dataplus_db = null;
-    }
-    //if simple, drop the supporting tables leaving only the core module data.
-    else {
+    } else {
+        //if simple, drop the supporting tables leaving only the core module data.
         $dataplus_db->drop_table('column');
         $dataplus_db->drop_table('templates');
     }
-}
-//if a full dataplus database is being downloaded, add all supporting files to the archive.
-else if ((has_capability('mod/dataplus:downloadfull', $context))) {
+} else if ((has_capability('mod/dataplus:downloadfull', $context))) {
+    //if a full dataplus database is being downloaded, add all supporting files to the archive.
     $dataplus_db = new sqlite3_db_dataplus($dataplus->id);
 
-    $dataplus_filehelper->copy($image_fileinfo,$dataplus_filehelper->get_tozip_images_path());
-    $dataplus_filehelper->copy($file_fileinfo,$dataplus_filehelper->get_tozip_files_path());
+    $dataplus_filehelper->copy($image_fileinfo, $dataplus_filehelper->get_tozip_images_path());
+    $dataplus_filehelper->copy($file_fileinfo, $dataplus_filehelper->get_tozip_files_path());
 } else {
     print_error("Export selections misset or you do not have the correct permissions to proceed");
 }

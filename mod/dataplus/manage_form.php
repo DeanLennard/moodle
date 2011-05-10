@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -7,25 +23,26 @@
  * @package dataplus
  */
 
-require_once ($CFG->dirroot.'/course/moodleform_mod.php');
-	
+require_once($CFG->dirroot.'/course/moodleform_mod.php');
+
 class dataplus_manage_form extends moodleform {
-	
-/**
- * moodleforms requires a definition(), but I don't want the fields defined when the 
- * class is instantiated, so this one does nothing
- */
-    function definition() {
+
+    /**
+     * moodleforms requires a definition(), but I don't want the fields defined when the 
+     * class is instantiated, so this one does nothing
+     */
+    public function definition() {
         return;
     }
 
-   /**
-    * this function actually defines the form fields 
-    *
-    * @param int $itterations - the number of fields that can be created from this instance of a form
-    * @param string $form_context - create a form to 'add' fields or 'edit' fields
-    */
-    function define_fields($itterations,$form_context = 'add'){
+    /**
+     * this function actually defines the form fields 
+     *
+     * @param int $itterations - the number of fields that can be created from this instance of
+     * a form
+     * @param string $form_context - create a form to 'add' fields or 'edit' fields
+     */
+    public function define_fields($itterations, $form_context = 'add') {
         global $dataplus_db, $groupmode, $cm, $currentgroup;
 
         $mform =&$this->_form;
@@ -37,20 +54,24 @@ class dataplus_manage_form extends moodleform {
         }
 
         for ($i = 0; $i < $itterations; $i++) {
-            $mform->addElement('static','br' . $i,'','<br/>');
-            $mform->addElement('text', 'fieldname' .  $i, get_string('fieldname','dataplus'), array('size'=>'64'));
+            $mform->addElement('static', 'br' . $i, '', '<br/>');
+            $mform->addElement('text', 'fieldname' .  $i, get_string('fieldname', 'dataplus'),
+                array('size'=>'64'));
 
             $options = $dataplus_db->get_field_types();
 
             unset($options['menusingle']);
             unset($options['menumultiple']);
-            
+
             $options['menu'] = get_string('field_menu', 'dataplus');
 
-            $mform->addElement('select', 'fieldtype' .  $i, get_string('fieldtype', 'dataplus'), $options);
-            $mform->addElement('checkbox', 'fieldmultiple' .  $i, get_string('allowmultiple', 'dataplus'));
+            $mform->addElement('select', 'fieldtype' .  $i, get_string('fieldtype', 'dataplus'),
+                $options);
+            $mform->addElement('checkbox', 'fieldmultiple' .  $i, get_string('allowmultiple',
+                'dataplus'));
             $mform->disabledIf('fieldmultiple' .  $i, 'fieldtype' .  $i, '', 'menu');
-            $mform->addElement('textarea', 'fieldoptions' .  $i, get_string('options', 'dataplus'), 'rows="5" cols="40"');
+            $mform->addElement('textarea', 'fieldoptions' .  $i, get_string('options', 'dataplus'),
+            'rows="5" cols="40"');
             $mform->disabledIf('fieldoptions' .  $i, 'fieldtype' .  $i, '', 'menu');
 
             if ($groupmode > 0) {
@@ -62,13 +83,14 @@ class dataplus_manage_form extends moodleform {
                         $groups["{$gd->id}"] = $gd->name;
                     }
 
-                    $mform->addElement('select','group_id' . $i,get_string('group','dataplus'),$groups);
-                    $mform->setDefault('group_id' . $i,$currentgroup);
+                    $mform->addElement('select', 'group_id'.$i, get_string('group', 'dataplus'),
+                        $groups);
+                    $mform->setDefault('group_id'.$i, $currentgroup);
                 }
             }
         }
 
-        $mform->addElement('static','brend','','<br/>');
+        $mform->addElement('static', 'brend', '', '<br/>');
         $mform->addElement('submit', 'submitbutton', get_string('savechanges'));
     }
 }

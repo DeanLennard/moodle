@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -13,7 +29,7 @@ require_once("lib.php");
 /**
  * generates the screen for creating / editing a template
  */
-function dataplus_manage_template(){
+function dataplus_manage_template() {
     global $dataplus_db, $CFG, $id, $currentgroup, $SESSION, $mode;
 
     require_once('template_view_form.php');
@@ -32,7 +48,8 @@ function dataplus_manage_template(){
         $SESSION->dataplus_use_editor = 'textarea';
     }
 
-    $mform = new dataplus_template_view_form("{$CFG->wwwroot}/mod/dataplus/templates.php?id={$id}&mode={$mode}");
+    $mform = new dataplus_template_view_form("{$CFG->wwwroot}/mod/dataplus/templates.php?id={$id}&
+        mode={$mode}");
 
     if ($form = $mform->get_data()) {
         if ($mode == 'addrecord') {
@@ -76,7 +93,7 @@ function dataplus_manage_template(){
 /**
  * gets existing values for a template form
  */
-function dataplus_get_form_values(){
+function dataplus_get_form_values() {
     global $mode, $dataplus_db;
 
     $template = $dataplus_db->get_template($mode);
@@ -91,16 +108,20 @@ function dataplus_get_form_values(){
         $defaultvals = array('record' => dataplus_get_default_view_template());
     } else {
         foreach ($columns as $column) {
-            $template->record = str_replace("[[{$column->name}]]","[[{$column->label}]]",$template->record);
-            $template->record = str_replace("##{$column->name}##","##{$column->label}##",$template->record);
+            $template->record = str_replace("[[{$column->name}]]", "[[{$column->label}]]",
+                $template->record);
+            $template->record = str_replace("##{$column->name}##", "##{$column->label}##",
+                $template->record);
         }
 
         foreach ($actions as $action) {
-            $template->record = str_replace("##{$action->name}##","##{$action->label}##",$template->record);
+            $template->record = str_replace("##{$action->name}##", "##{$action->label}##",
+                $template->record);
         }
 
         foreach ($infos as $i) {
-            $template->record = str_replace("++{$i->name}++","++{$i->label}++",$template->record);
+            $template->record = str_replace("++{$i->name}++", "++{$i->label}++",
+                $template->record);
         }
 
         $defaultvals['record'] = $template->record;
@@ -120,18 +141,21 @@ function dataplus_get_form_values(){
 
     if (empty($template->comments)) {
         $defaultvals['comments'] = dataplus_get_default_comments();
-    } else { 
+    } else {
         $defaultvals['comments'] = $template->comments;
     }
 
     foreach ($actions as $action) {
-        $defaultvals['comments'] = str_replace("**{$action->name}**","**{$action->label}**",$defaultvals['comments']);
+        $defaultvals['comments'] = str_replace("**{$action->name}**", "**{$action->label}**",
+            $defaultvals['comments']);
     }
-        
+
     foreach ($functions as $function) {
-        $defaultvals['header'] = str_replace("##{$function->name}##","##{$function->label}##",$defaultvals['header']);
-        $defaultvals['footer'] = str_replace("##{$function->name}##","##{$function->label}##",$defaultvals['footer']); 
-    } 
+        $defaultvals['header'] = str_replace("##{$function->name}##", "##{$function->label}##",
+            $defaultvals['header']);
+        $defaultvals['footer'] = str_replace("##{$function->name}##", "##{$function->label}##",
+            $defaultvals['footer']);
+    }
 
     if (empty($template->css)) {
         $defaultvals['css'] = dataplus_get_default_css();
@@ -148,13 +172,13 @@ function dataplus_get_form_values(){
     }
 
     if (!empty($template->sortorder)) {
-        $orders = explode(",",$template->sortorder);
+        $orders = explode(",", $template->sortorder);
 
-        for ($i=0; $i < sizeof($orders); $i++) {
+        for ($i = 0; $i < count($orders); $i++) {
             $order_parts = explode(" ", $orders[$i]);
             $defaultvals['sortorder'.($i+1)] = $order_parts[0];
 
-            if (sizeof($order_parts) == 2) {
+            if (count($order_parts) == 2) {
                 $defaultvals['sortoption'.($i+1)] = $order_parts[1];
             }
         }
@@ -167,7 +191,7 @@ function dataplus_get_form_values(){
 /**
  * get the existing values for an add record template form
  */
-function dataplus_get_addrecord_form_values(){
+function dataplus_get_addrecord_form_values() {
     global $mode, $dataplus_db;
 
     $template = $dataplus_db->get_template($mode);
@@ -179,14 +203,15 @@ function dataplus_get_addrecord_form_values(){
         $defaultvals = array('record' => dataplus_get_default_addrecord_template($mode));
     } else {
         foreach ($columns as $column) {
-            $template->record = str_replace("[[{$column->name}]]","[[{$column->label}]]",$template->record);
+            $template->record = str_replace("[[{$column->name}]]", "[[{$column->label}]]",
+                $template->record);
         }
 
         $defaultvals['record'] = $template->record;
     }
 
     if (empty($template->css)) {
-        $defaultvals['css'] = dataplus_get_default_addrecord_CSS();
+        $defaultvals['css'] = dataplus_get_default_addrecord_css();
     } else {
         $defaultvals['css'] = $template->css;
     }
@@ -207,7 +232,7 @@ function dataplus_get_addrecord_form_values(){
  * resolve data from a template form for storage in the database
  * @param object $form
  */
-function dataplus_resolve_form_data($form){
+function dataplus_resolve_form_data($form) {
     global $dataplus_db, $mode, $currentgroup;
 
     $results = array();
@@ -217,21 +242,23 @@ function dataplus_resolve_form_data($form){
     $infos = dataplus_detail_supporting_record_information();
 
     foreach ($columns as $column) {
-        $form->record = str_replace("[[{$column->label}]]","[[{$column->name}]]",$form->record);
-        $form->record = str_replace("##{$column->label}##","##{$column->name}##",$form->record);
+        $form->record = str_replace("[[{$column->label}]]", "[[{$column->name}]]", $form->record);
+        $form->record = str_replace("##{$column->label}##", "##{$column->name}##", $form->record);
     }
 
     foreach ($functions as $function) {
-        $form->header = str_replace("##{$function->label}##","##{$function->name}##",$form->header);
-        $form->footer = str_replace("##{$function->label}##","##{$function->name}##",$form->footer);
+        $form->header = str_replace("##{$function->label}##", "##{$function->name}##",
+            $form->header);
+        $form->footer = str_replace("##{$function->label}##", "##{$function->name}##",
+            $form->footer);
     }
 
     foreach ($actions as $action) {
-        $form->record = str_replace("**{$action->label}**","**{$action->name}**",$form->record);
+        $form->record = str_replace("**{$action->label}**", "**{$action->name}**", $form->record);
     }
 
     foreach ($infos as $i) {
-        $form->record = str_replace("++{$i->label}++","++{$i->name}++",$form->record);
+        $form->record = str_replace("++{$i->label}++", "++{$i->name}++", $form->record);
     }
 
     $results[0]->name = 'css';
@@ -241,14 +268,14 @@ function dataplus_resolve_form_data($form){
     $results[1]->value = undo_escaping($form->javascript);
 
     $results[2]->name = 'js_init';
-    $results[2]->value = undo_escaping($form->javascript_init);  
-        
+    $results[2]->value = undo_escaping($form->javascript_init);
+
     $results[3]->name = 'header';
     $results[3]->value = undo_escaping($form->header);
 
     $results[4]->name = 'record';
-    $results[4]->value = undo_escaping(str_replace('\"','"',$form->record));
-        
+    $results[4]->value = undo_escaping(str_replace('\"', '"', $form->record));
+
     $results[5]->name = 'footer';
     $results[5]->value = undo_escaping($form->footer);
 
@@ -263,11 +290,12 @@ function dataplus_resolve_form_data($form){
         $results[7]->value = undo_escaping($form->comments);
 
         foreach ($actions as $action) {
-            $form->comments = str_replace("**{$function->label}**","**{$function->name}**",$form->comments);
+            $form->comments = str_replace("**{$function->label}**", "**{$function->name}**",
+                $form->comments);
         }
     }
 
-    $n = sizeof($results);
+    $n = count($results);
     $results[$n]->name  = 'sortorder';
     $results[$n]->value = dataplus_resolve_sort_order($form);
 
@@ -275,14 +303,14 @@ function dataplus_resolve_form_data($form){
 }
 
 
-function dataplus_resolve_addrecord_form_data($form){
+function dataplus_resolve_addrecord_form_data($form) {
     global $dataplus_db, $mode, $currentgroup;
 
     $results = array();
     $columns = $dataplus_db->list_dataplus_table_columns(true);
 
     foreach ($columns as $column) {
-        $form->record = str_replace("[[{$column->label}]]","[[{$column->name}]]",$form->record);
+        $form->record = str_replace("[[{$column->label}]]", "[[{$column->name}]]", $form->record);
     }
 
     $results[0]->name = 'css';
@@ -295,11 +323,11 @@ function dataplus_resolve_addrecord_form_data($form){
     $results[2]->value = undo_escaping($form->javascript_init);
 
     $results[3]->name = 'record';
-    $results[3]->value = undo_escaping(str_replace('\"','"',$form->record));
+    $results[3]->value = undo_escaping(str_replace('\"', '"', $form->record));
 
     $results[5]->name = 'type';
     $results[5]->value = $mode;
-                
+
     $results[6]->name = 'group_id';
     $results[6]->value = $currentgroup;
 
@@ -307,13 +335,13 @@ function dataplus_resolve_addrecord_form_data($form){
 }
 
 
-function dataplus_resolve_sort_order($form){
+function dataplus_resolve_sort_order($form) {
     $sortorder = '';
 
     for ($i = 1; $i <= dataplus_sort_order_limit(); $i++) {
         $sortorder_name = "sortorder" . $i;
         $sortoption_name = "sortoption" . $i;
-            
+
         if ($form->$sortorder_name != 'na') {
             if (strlen($sortorder)>0) {
                 $sortorder .= ',';
@@ -334,8 +362,9 @@ function dataplus_resolve_sort_order($form){
     return $sortorder;
 }
 
-dataplus_base_setup(); 
-dataplus_page_setup('/mod/dataplus/templates.php',dataplus_get_querystring_vars(),get_string('templates','dataplus'),'/mod/dataplus/template_js_form.js');
+dataplus_base_setup();
+dataplus_page_setup('/mod/dataplus/templates.php', dataplus_get_querystring_vars(),
+    get_string('templates', 'dataplus'), '/mod/dataplus/template_js_form.js');
 
 $currenttab = 'templates';
 
@@ -343,12 +372,13 @@ if (empty($mode)) {
     $mode = 'view';
 }
 
-include('tabs.php');
+require('tabs.php');
 
 if (isloggedin() && has_capability('mod/dataplus:databaseedit', $context)) {
     dataplus_manage_template();
 } else {
-    print_error('capablilty_edit_template','dataplus', $CFG->wwwroot.'/mod/dataplus/view.php?mode=view&amp;id=' . $id);
+    print_error('capablilty_edit_template', 'dataplus', $CFG->wwwroot.
+        '/mod/dataplus/view.php?mode=view&amp;id=' . $id);
 }
 
 echo $OUTPUT->footer();

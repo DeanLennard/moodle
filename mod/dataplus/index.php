@@ -1,4 +1,20 @@
-<?php 
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -32,15 +48,16 @@ $str_size = get_string("size", "dataplus");
 
 $navlinks = array();
 $navlinks[] = array(
-    'name' => $str_dataplus, 
-    'link' => "index.php?id=$course->id", 
+    'name' => $str_dataplus,
+    'link' => "index.php?id=$course->id",
     'type' => 'activity');
 $navigation = build_navigation($navlinks);
 
 print_header_simple($str_dataplus, '', $navigation, '', '', true, '', navmenu($course));
 
 if (!$datapluss = get_all_instances_in_course("dataplus", $course)) {
-    notice(get_string('thereareno', 'moodle', $str_dataplus), "../../course/view.php?mode=view&amp;id=$course->id");
+    notice(get_string('thereareno', 'moodle', $str_dataplus),
+        "../../course/view.php?mode=view&amp;id=$course->id");
     die;
 }
 
@@ -70,10 +87,12 @@ $currentsection = "";
 foreach ($datapluss as $dataplus) {
     if (!$dataplus->visible && has_capability('moodle/course:viewhiddenactivities', $context)) {
         // Show dimmed if the mod is hidden.
-        $link = "<a class=\"dimmed\" href=\"view.php?mode=view&amp;id=$dataplus->coursemodule\">".format_string($dataplus->name,true)."</a>";
+        $link = "<a class=\"dimmed\" href=\"view.php?mode=view&amp;id=$dataplus->coursemodule\">".
+            format_string($dataplus->name, true)."</a>";
     } else if ($dataplus->visible) {
         // Show normal if the mod is visible.
-        $link = "<a href=\"view.php?mode=view&amp;id=$dataplus->coursemodule\">".format_string($dataplus->name,true)."</a>";
+        $link = "<a href=\"view.php?mode=view&amp;id=$dataplus->coursemodule\">".
+            format_string($dataplus->name, true)."</a>";
     } else {
         // Don't show the glossary.
         continue;
@@ -96,7 +115,8 @@ foreach ($datapluss as $dataplus) {
         $rsslink = rss_get_link($course->id, $USER->id, 'data', $data->id, 'RSS');
     }
 
-    $filepath = $CFG->dataroot.'/'.$id.'/moddata/dataplus/'.$dataplus->id.'/'.$dataplus->id.'.sqlite';
+    $filepath = $CFG->dataroot.'/'.$id.'/moddata/dataplus/'.$dataplus->id.'/'.$dataplus->id.
+        '.sqlite';
 
     if (file_exists($filepath)) {
         $file_size = filesize($filepath);

@@ -1,4 +1,4 @@
- // support for the templates form
+// support for the templates form
 
 function dataplusisdefined(object, variable){
     return (typeof(eval(object)[variable]) != 'undefined');
@@ -72,16 +72,16 @@ function dataplusUpdateTextbox(str,id) {
 function dataplusShowHideTemplateFormElement(id,link_id,showStr,hideStr){
     var form_element_grandparent = document.getElementById(id).parentNode.parentNode;
     var link = document.getElementById(link_id);
-    
+
     if (form_element_grandparent.style.display == 'none') {
         form_element_grandparent.style.display = 'block';
-        
+
         if (link) {
         	link.value = hideStr;
         }
     } else {
         form_element_grandparent.style.display = 'none';
-        
+
         if (link) {
             link.value = showStr;
         }

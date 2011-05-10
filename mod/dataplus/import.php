@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -15,7 +31,7 @@ require_once($CFG->libdir.'/pclzip/pclzip.lib.php');
 /*
  * Generate the import screen and process form submissions
  */
-function dataplus_import(){
+function dataplus_import() {
     global $CFG, $id, $dataplus_db, $dataplus, $dataplus_filehelper, $mode;
 
     require_once('import_form.php');
@@ -34,19 +50,18 @@ function dataplus_import(){
         //if something has been uploaded, put it in the temp directory...
         $temp_path = $dataplus_filehelper->get_temp_path();
 
-        $mform->_upload_manager->upload_manager('importfile',false,true);
+        $mform->_upload_manager->upload_manager('importfile', false, true);
         $mform->_upload_manager->save_files($temp_path);
 
         $filename = $mform->_upload_manager->get_new_filename();
 
-        $filenameSp = explode('.',$filename);
+        $filenamesp = explode('.', $filename);
 
         //if the uploaded file does not appear to be a zip archive, get an error message
-        if ($filenameSp[1] != 'zip') {
-            $valid = get_string('validate_file_suffix','dataplus');
-        }
-        //otherwise, unzip the archive...
-        else {
+        if ($filenamesp[1] != 'zip') {
+            $valid = get_string('validate_file_suffix', 'dataplus');
+        } else {
+            //otherwise, unzip the archive...
             unzip_file($temp_path . '/' . $filename);
 
             $hande = opendir($temp_path);
@@ -55,10 +70,10 @@ function dataplus_import(){
 
             //find the name of the SQLite3 database
             while (false !== ($file = readdir($hande))) {
-                $filenameSp = explode('.',$file);
+                $filenamesp = explode('.', $file);
 
-                if (isset($filenameSp[1]) && $filenameSp[1] == 'sqlite') {
-                    $db_name = $filenameSp[0];
+                if (isset($filenamesp[1]) && $filenamesp[1] == 'sqlite') {
+                    $db_name = $filenamesp[0];
                     break;
                 }
             }
@@ -72,35 +87,36 @@ function dataplus_import(){
                     $column[0]->name = 'group_id';
                     $column[0]->value = '';
 
-                    $upload_db->update_record('content',$column);
+                    $upload_db->update_record('content', $column);
                 }
 
                 if ($CFG->wwwroot != $upload_db->get_file_db_domain()) {
                     $column[0]->name = 'last_update_id';
                     $column[0]->value = '-1';
 
-                    $upload_db->update_record('content',$column);
+                    $upload_db->update_record('content', $column);
 
                     $column[0]->name = 'creator_id';
                     $column[0]->value = '-1';
 
-                    $upload_db->update_record('content',$column);
+                    $upload_db->update_record('content', $column);
                 }
             } else {
-                $valid = get_string('validate_no_db','dataplus');
+                $valid = get_string('validate_no_db', 'dataplus');
             }
         }
 
-        //if the database is valid, copy it from the temp dir to the root module instance and print a confirmation
+        //if the database is valid, copy it from the temp dir to the root module instance and
+        //print a confirmation
         if ($valid === true) {
             $dataplus_db->delete_db();
-            $dataplus_filehelper->copy($temp_path,$dataplus_filehelper->get_fileinfo(), array($filename,'lock.txt'));
+            $dataplus_filehelper->copy($temp_path, $dataplus_filehelper->get_fileinfo(),
+                array($filename, 'lock.txt'));
             $path = $dataplus_filehelper->get_path();
             rename($path.'/'.$file, $path.'/'.$dataplus->id.'.sqlite');
             echo '<p>'.get_string('importcomplete', 'dataplus').'</p>';
-        }
-        //if it's not valid, print an error message
-        else {
+        } else {
+            //if it's not valid, print an error message
             echo '<p>'.$valid.'</p>';
         }
     }
@@ -109,7 +125,8 @@ function dataplus_import(){
 }
 
 dataplus_base_setup();
-dataplus_page_setup('/mod/dataplus/import.php',dataplus_get_querystring_vars(),get_string('export','dataplus'));
+dataplus_page_setup('/mod/dataplus/import.php', dataplus_get_querystring_vars(),
+    get_string('export', 'dataplus'));
 
 //don't show the navigation tabs if we're in setup mode.
 if ($mode!='dbsetup' || !empty($_POST)) {
@@ -120,7 +137,8 @@ if ($mode!='dbsetup' || !empty($_POST)) {
 if (isloggedin() && has_capability('mod/dataplus:databaseedit', $context)) {
     dataplus_import();
 } else {
-    print_error('capablilty_edit_template','dataplus', $CFG->wwwroot.'/mod/dataplus/view.php?mode=view&amp;id=' . $id);
+    print_error('capablilty_edit_template', 'dataplus', $CFG->wwwroot.
+        '/mod/dataplus/view.php?mode=view&amp;id=' . $id);
 }
 
 echo $OUTPUT->footer();

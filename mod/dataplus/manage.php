@@ -1,4 +1,20 @@
 <?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
  * @copyright &copy; 2010 The Open University
@@ -15,7 +31,7 @@ require_once($CFG->libdir.'/filelib.php');
  *
  * @param string $msg
  */
-function dataplus_manage($msg = null){
+function dataplus_manage($msg = null) {
     global $dataplus_db, $CFG, $id, $groupmode;
 
     require_once('manage_form.php');
@@ -24,13 +40,14 @@ function dataplus_manage($msg = null){
         echo "<p>{$msg}</p>";
     }
 
-    $mform = new dataplus_manage_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}&mode=dbmanage");
-    $parameters = dataplus_get_restricted_groups_parameters();	
+    $mform = new dataplus_manage_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}&
+        mode=dbmanage");
+    $parameters = dataplus_get_restricted_groups_parameters();
     $columns = $dataplus_db->list_dataplus_table_columns(false, $parameters);
 
     //mform require the form fields to be defined before it checks post data
 
-    /* if the database has no user defined columns, then generate a form to allow the creation 
+    /* if the database has no user defined columns, then generate a form to allow the creation
      * of up to 4 fields, otherwise one field
      */
 
@@ -47,7 +64,8 @@ function dataplus_manage($msg = null){
         $i = 0;
         $exists = false;
 
-        // if there are no fields in the database, check that none of the new fields have the same name as each other
+        // if there are no fields in the database, check that none of the new fields have the same
+        // name as each other
         if (empty($columns)) {
             for ($i=0; $i<$field_no; $i++) {
                 $var_name = 'fieldname' . $i;
@@ -63,9 +81,9 @@ function dataplus_manage($msg = null){
                     $v++;
                 }
             }
-        }
-        // if there are fields, check the new/edited fields doesn't have the same name as an existing field
-        else {
+        } else {
+            // if there are fields, check the new/edited fields doesn't have the same name as an
+            // existing field
             while (true) {
                 $var_name = 'fieldname' . $i;
 
@@ -111,13 +129,14 @@ function dataplus_manage($msg = null){
                             $options = $form->$var_options;
                         }
 
-                        if(isset($form->$var_group_id)){
+                        if (isset($form->$var_group_id)) {
                             $group_id = $form->$var_group_id;
                         } else {
                             $group_id = '0';
                         }
 
-                        $result = $dataplus_db->add_column($form->$var_name, $form->$var_type, $options, $group_id);
+                        $result = $dataplus_db->add_column($form->$var_name, $form->$var_type,
+                            $options, $group_id);
                     }
                 } else {
                     break;
@@ -126,7 +145,8 @@ function dataplus_manage($msg = null){
                 $i++;
             }
 
-            //Trash the form and POST global and create a new instance, this ensures the form will have one field and post data is not displayed.
+            //Trash the form and POST global and create a new instance, this ensures the form will
+            //have one field and post data is not displayed.
             $_POST = null;
             $mform = new dataplus_manage_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}");
             $mform->define_fields(1);
@@ -142,25 +162,34 @@ function dataplus_manage($msg = null){
         $table = new html_table();
 
         if ($groupmode > 0) {
-            $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype', 'dataplus'), get_string('group', 'dataplus'), get_string('actions', 'dataplus'));
+            $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype',
+                'dataplus'), get_string('group', 'dataplus'), get_string('actions', 'dataplus'));
         } else {
-            $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype', 'dataplus'), get_string('actions', 'dataplus'));	    		
+            $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype',
+                'dataplus'), get_string('actions', 'dataplus'));
         }
 
         foreach ($columns as $column) {
             if (dataplus_check_groups($column, true)) {
-                $icons = "<a title=\"{$str_edit}\" href=\"manage.php?id={$id}&amp;mode=edit&amp;fid={$column->id}\">
-                          <img src=\"{$CFG->wwwroot}/pix/t/edit.gif\" class=\"iconsmall\" alt=\"{$str_edit}\" /></a>
-                          <a title=\"{$str_delete}\" href=\"manage.php?id={$id}&amp;mode=delete&amp;fid={$column->id}\">
-                          <img src=\"{$CFG->wwwroot}/pix/t/delete.gif\" class=\"iconsmall\" alt=\"{$str_delete}\" /></a>";
+                $icons = "<a title=\"{$str_edit}\" href=\"manage.php?id={$id}&amp;mode=edit&amp;
+                          fid={$column->id}\">
+                          <img src=\"{$CFG->wwwroot}/pix/t/edit.gif\" class=\"iconsmall\"
+                          alt=\"{$str_edit}\" /></a>
+                          <a title=\"{$str_delete}\" href=\"manage.php?id={$id}&amp;mode=delete
+                          &amp;fid={$column->id}\">
+                          <img src=\"{$CFG->wwwroot}/pix/t/delete.gif\" class=\"iconsmall\"
+                          alt=\"{$str_delete}\" /></a>";
             } else {
                 $icons = '';
             }
 
-            if($groupmode > 0){
-                $table->data[] = array($column->label, $dataplus_db->get_field_type_description($column->form_field_type),dataplus_get_group_name($column->group_id),$icons);
+            if ($groupmode > 0) {
+                $table->data[] = array($column->label,
+                    $dataplus_db->get_field_type_description($column->form_field_type),
+                    dataplus_get_group_name($column->group_id), $icons);
             } else {
-                $table->data[] = array($column->label, $dataplus_db->get_field_type_description($column->form_field_type),$icons);
+                $table->data[] = array($column->label,
+                    $dataplus_db->get_field_type_description($column->form_field_type), $icons);
             }
         }
 
@@ -177,16 +206,17 @@ function dataplus_manage($msg = null){
  * generates the screen for editing a field
  *
  */
-function dataplus_edit(){
+function dataplus_edit() {
     global $dataplus_db, $CFG, $id, $dataplus_filehelper;
 
     require_once('manage_form.php');
 
     $fid = optional_param('fid', null, PARAM_INT);
 
-    $mform = new dataplus_manage_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}&mode=editsubmit&fid={$fid}");
+    $mform = new dataplus_manage_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}&
+        mode=editsubmit&fid={$fid}");
 
-    $mform->define_fields(1,'edit');
+    $mform->define_fields(1, 'edit');
 
     //if the editing form is cancelled, go back to the manage screen
     if ($mform->is_cancelled() || empty($fid)) {
@@ -211,7 +241,7 @@ function dataplus_edit(){
 
         if ($type!=$form->fieldtype0) {
             if ($type == 'file' || $type == 'image') {
-                $dataplus_filehelper->delete_column_files($name,$type);
+                $dataplus_filehelper->delete_column_files($name, $type);
             }
         }
 
@@ -255,7 +285,8 @@ function dataplus_edit(){
         $column_details->multiple = 'checked';
     }
 
-    if ($column_details->form_field_type == 'menusingle' || $column_details->form_field_type == 'menumultiple') {
+    if ($column_details->form_field_type == 'menusingle'
+        || $column_details->form_field_type == 'menumultiple') {
         $column_details->form_field_type = 'menu';
     }
 
@@ -268,10 +299,11 @@ function dataplus_edit(){
     }
 
     if (isset($column_details->form_field_options)) {
-        $defaultvals['fieldoptions0'] = preg_replace("/^\r/"," \r",$column_details->form_field_options);
+        $defaultvals['fieldoptions0'] = preg_replace("/^\r/", " \r",
+            $column_details->form_field_options);
     }
 
-    if(isset($column_details->group_id)){
+    if (isset($column_details->group_id)) {
         $defaultvals['group_id0'] = $column_details->group_id;
     }
 
@@ -286,12 +318,12 @@ function dataplus_edit(){
  * generates the screen to delete fields.
  *
  */
-function dataplus_delete(){
+function dataplus_delete() {
     global $dataplus_db, $CFG, $id, $groupmode, $dataplus_filehelper;
 
     require_once('delete_form.php');
 
-    $fid = optional_param('fid', NULL, PARAM_INT);
+    $fid = optional_param('fid', null, PARAM_INT);
 
     //check the current group can delete this field
     $col_details = $dataplus_db->get_column_details($fid);
@@ -300,9 +332,10 @@ function dataplus_delete(){
         return;
     }
 
-    $mform = new dataplus_delete_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}&mode=deletesubmit&fid={$fid}");
+    $mform = new dataplus_delete_form("{$CFG->wwwroot}/mod/dataplus/manage.php?id={$id}
+        &mode=deletesubmit&fid={$fid}");
 
-    if($mform->is_cancelled() || empty($fid)) {
+    if ($mform->is_cancelled() || empty($fid)) {
         dataplus_manage();
         return;
     }
@@ -315,7 +348,8 @@ function dataplus_delete(){
 
         //if the field had supporting files, delete them.
         if ($form_field_type == 'image' || $form_field_type == 'file') {
-            $dataplus_filehelper->delete_column_files($col_details->name,$col_details->form_field_type);
+            $dataplus_filehelper->delete_column_files($col_details->name,
+                $col_details->form_field_type);
         }
 
         $del = $dataplus_db->delete_column($fid);
@@ -339,15 +373,20 @@ function dataplus_delete(){
 
     // no form has been submitted, so display a table with the column detail and the delete form
     if ($groupmode > 0) {
-        $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype', 'dataplus'), get_string('group', 'dataplus'));
+        $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype',
+            'dataplus'), get_string('group', 'dataplus'));
     } else {
-        $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype', 'dataplus'));
+        $table->head = array(get_string('fieldname', 'dataplus'), get_string('fieldtype',
+            'dataplus'));
     }
 
     if ($groupmode > 0) {
-        $table->data[] = array($column_details->label, $dataplus_db->get_field_type_description($column_details->form_field_type),dataplus_get_group_name($column_details->group_id));
+        $table->data[] = array($column_details->label,
+            $dataplus_db->get_field_type_description($column_details->form_field_type),
+            dataplus_get_group_name($column_details->group_id));
     } else {
-        $table->data[] = array($column_details->label, $dataplus_db->get_field_type_description($column_details->form_field_type));
+        $table->data[] = array($column_details->label,
+        $dataplus_db->get_field_type_description($column_details->form_field_type));
     }
 
     echo html_writer::table($table);
@@ -357,7 +396,8 @@ function dataplus_delete(){
 }
 
 dataplus_base_setup();
-dataplus_page_setup('/mod/dataplus/manage.php',dataplus_get_querystring_vars(),get_string('managedatabase','dataplus'));
+dataplus_page_setup('/mod/dataplus/manage.php', dataplus_get_querystring_vars(),
+    get_string('managedatabase', 'dataplus'));
 
 //if we're in dbsetup mode, don't show navigational tabs.
 if ($mode!='dbsetup') {
@@ -367,17 +407,18 @@ if ($mode!='dbsetup') {
 }
 
 if (isloggedin() && has_capability('mod/dataplus:databaseedit', $context)) {
-    $group = optional_param('group', null, PARAM_TEXT);	
+    $group = optional_param('group', null, PARAM_TEXT);
 
     if ($mode=='edit' || ($mode=='editsubmit' && is_null($group))) {
         dataplus_edit();
-    } else if($mode=='delete' || ($mode=='deletesubmit' && is_null($group))) {
+    } else if ($mode=='delete' || ($mode=='deletesubmit' && is_null($group))) {
         dataplus_delete();
-    } else{
+    } else {
         dataplus_manage();
     }
 } else {
-    print_error('capablilty_manage_database','dataplus', $CFG->wwwroot.'/mod/dataplus/view.php?mode=view&amp;id='.$id);
+    print_error('capablilty_manage_database', 'dataplus', $CFG->wwwroot.'/mod/dataplus/view.php?
+        mode=view&amp;id='.$id);
 }
 
 echo $OUTPUT->footer();
